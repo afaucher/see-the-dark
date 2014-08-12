@@ -65,6 +65,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		Vector2 cameraPosition = field.entity.getPosition();
 		camera.position.set(cameraPosition,0);
 		camera.update();
+		renderer.identity();
 		renderer.setProjectionMatrix(camera.combined);
 
 		field.render(renderer);
