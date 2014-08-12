@@ -1,28 +1,21 @@
 package com.mygdx.game;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Entity implements RayCastCallback, BodyData {
+public class Entity implements BodyData {
 
 	private Body body;
 	private float angle = 0;
-	private List<SensorHit> hits = new ArrayList<SensorHit>();
+	
 	private TwoAxisControl playerOne;
+	private SensorAccumlator sensorAccumulator = new SensorAccumlator();
 	private static final float SCAN_LENGTH = 300.0f;
 	private static final float BODY_RADIUS = 10.0f;
 	private static final float HIT_RADIUS = 5.0f;
@@ -32,11 +25,9 @@ public class Entity implements RayCastCallback, BodyData {
 	private static final float SCAN_RADIUS = SCAN_HALF_RADIUS * 2.0f;
 	private static final int SCAN_SLICES = 40;
 
-	public class SensorHit {
-		Vector2 hitLocation = null;
-		Vector2 normal = null;
-		BodyData data = null;
-	}
+
+	
+
 
 	public Entity(World world, TwoAxisControl playerOne) {
 		this.playerOne = playerOne;
@@ -74,7 +65,7 @@ public class Entity implements RayCastCallback, BodyData {
 		World world = body.getWorld();
 		Vector2 rayStart = body.getPosition();
 
-		hits.clear();
+		sensorAccumulator.reset();
 
 		// Main Scanner
 		for (float offset = -SCAN_HALF_RADIUS; offset <= SCAN_HALF_RADIUS; offset += SCAN_RADIUS
@@ -84,7 +75,7 @@ public class Entity implements RayCastCallback, BodyData {
 			float rayEndY = y + (float) Math.sin(angle + offset) * SCAN_LENGTH;
 			Vector2 rayEnd = new Vector2(rayEndX, rayEndY);
 
-			world.rayCast(this, rayStart, rayEnd);
+			world.rayCast(sensorAccumulator, rayStart, rayEnd);
 		}
 
 		// Global Scanner
@@ -99,13 +90,13 @@ public class Entity implements RayCastCallback, BodyData {
 					* globalScannerLength;
 			Vector2 rayEnd = new Vector2(rayEndX, rayEndY);
 
-			world.rayCast(this, rayStart, rayEnd);
+			world.rayCast(sensorAccumulator, rayStart, rayEnd);
 		}
 
 		// Scanner
 		renderer.begin(ShapeType.Line);
 		renderer.setColor(ColorPalate.SCANNER);
-		for (SensorHit hit : hits) {
+		for (SensorHit hit : sensorAccumulator.getHits()) {
 			renderer.line(rayStart, hit.hitLocation);
 		}
 		float startArcDeg = (angle - SCAN_HALF_RADIUS)
@@ -118,7 +109,7 @@ public class Entity implements RayCastCallback, BodyData {
 
 		// Hits
 		renderer.begin(ShapeType.Filled);
-		for (SensorHit hit : hits) {
+		for (SensorHit hit : sensorAccumulator.getHits()) {
 			Vector2 hitLocation = hit.hitLocation;
 			if (hit.data != null) {
 				renderer.setColor(hit.data.getMaterialColor());
@@ -137,22 +128,7 @@ public class Entity implements RayCastCallback, BodyData {
 
 	}
 
-	@Override
-	public float reportRayFixture(Fixture fixture, Vector2 point,
-			Vector2 normal, float fraction) {
-		if (body.getFixtureList().get(0).equals(fixture)) {
-			return -1;
-		}
 
-		//Copy is needed as box2d reuses it
-		SensorHit hit = new SensorHit();
-		hit.data = (BodyData)fixture.getBody().getUserData();
-		hit.hitLocation = point.cpy();
-		hit.normal = normal.cpy();
-		hits.add(hit);
-
-		return -1;
-	}
 
 	@Override
 	public BodyType getType() {
