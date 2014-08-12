@@ -8,7 +8,6 @@ import com.badlogic.gdx.physics.box2d.World;
 
 public class BodyHelper {
 
-
 	/**
 	 * Creates a circle object with the given position and radius. Resitution
 	 * defaults to 0.6.

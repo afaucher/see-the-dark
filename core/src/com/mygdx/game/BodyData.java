@@ -2,15 +2,13 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Color;
 
+/**
+ * Defines interaction model with physical objects. 
+ *
+ * Right now this is a passive model but this is where effects would be pushed.
+ */
 public interface BodyData {
-	public enum BodyType {
-		PLAYER,
-		//No idea, really
-		PROP,
-	}
-	
-	//Unknown use
-	public BodyType getType();
-	//Result is intended to be immutable
+
+	// Result is intended to be immutable
 	public Color getMaterialColor();
 }

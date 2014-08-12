@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -51,29 +53,50 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public void render() {
-		
+
 		long startPhysics = TimeUtils.nanoTime();
-		field.tick((long)(Gdx.graphics.getDeltaTime() * 3000), 4);
-		physicsMean.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
+		field.tick((long) (Gdx.graphics.getDeltaTime() * 3000), 4);
+		physicsMean
+				.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
 
 		Color background = ColorPalate.BACKGROUND;
-		Gdx.gl.glClearColor(background.r,background.g,background.b,background.a);
+		Gdx.gl.glClearColor(background.r, background.g, background.b,
+				background.a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
+
 		long startRender = TimeUtils.nanoTime();
+
+		Ship ship = field.getShips().get(0);
 		
-		Vector2 cameraPosition = field.entity.getPosition();
-		camera.position.set(cameraPosition,0);
+		//HUD
+		//TODO: COLOR is ugly, drawing is in world coordinates and under game
+		renderer.identity();
+		renderer.setColor(ColorPalate.HUD);
+		renderer.begin(ShapeType.Filled);
+		float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
+		renderer.arc(0, 0, 20, 0, fuelGuageDegrees);
+		renderer.end();
+		
+		//Camera
+		Vector2 cameraPosition = ship.getPosition();
+		camera.position.set(cameraPosition, 0);
 		camera.update();
 		renderer.identity();
 		renderer.setProjectionMatrix(camera.combined);
 
 		field.render(renderer);
-		renderMean.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
 		
+
+		
+		renderMean
+				.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
+
 		if (TimeUtils.nanoTime() - startTime > 1000000000) {
-			Gdx.app.log("Profile: ", "fps: " + Gdx.graphics.getFramesPerSecond() + " FPS, physics: " + physicsMean.getMean() * 1000
-				+ ", rendering: " + renderMean.getMean() * 1000 + "");
+			Gdx.app.log("Profile: ",
+					"fps: " + Gdx.graphics.getFramesPerSecond()
+							+ " FPS, physics: " + physicsMean.getMean() * 1000
+							+ ", rendering: " + renderMean.getMean() * 1000
+							+ "");
 			startTime = TimeUtils.nanoTime();
 		}
 	}
@@ -94,7 +117,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 			playerOneControl.setX(1);
 			break;
 		}
-		
+
 		return false;
 	}
 

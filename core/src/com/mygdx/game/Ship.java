@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.graphics.Color;
+import java.util.List;
+
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
@@ -9,77 +10,95 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.game.ship.ShipFactory;
+import com.mygdx.game.ship.ShipSection;
+import com.mygdx.game.ship.StaticShipFactory;
 
-public class Entity implements BodyData {
+public class Ship {
 
 	private Body body;
 
-	private TwoAxisControl playerOne;
+	private TwoAxisControl controls = null;
 	private SensorAccumlator sensorAccumulator = new SensorAccumlator();
+	private List<ShipSection> shipSections = null;
+
 	private static final float SCAN_LENGTH = 300.0f;
-	private static final float GLOBAL_SCAN_LENGTH = SCAN_LENGTH/2;
-	private static final float BODY_RADIUS = 10.0f;
+	private static final float GLOBAL_SCAN_LENGTH = SCAN_LENGTH / 2;
 	private static final float HIT_RADIUS = 5.0f;
-	//private static final float TURN_SPEED_RADIANS_PER_FRAME = 0.05f;
-	private static final float TORQUE_PER_FRAME = 2000.0f;
-	//private static final float SPEED_PER_SECOND = 100.0f;
-	private static final float FORCE_PER_FRAME = 100000.0f;
 	private static final float SCAN_HALF_RADIUS = 1.0f;
 	private static final float SCAN_RADIUS = SCAN_HALF_RADIUS * 2.0f;
 	private static final int SCAN_SLICES = 40;
 
-	private static FixtureDef createCircleFixture(World world, Vector2 position,
-			float radius) {
-		CircleShape sd = new CircleShape();
-		sd.setRadius(radius);
-		sd.setPosition(position);
+	private static final ShipFactory factory = new StaticShipFactory();
 
-		FixtureDef fdef = new FixtureDef();
-		fdef.shape = sd;
-		fdef.density = 1.0f;
-		fdef.friction = 0.5f;
-		fdef.restitution = 0.6f;
-
-		return fdef;
-	}
-
-	public Entity(World world, TwoAxisControl playerOne) {
-		this.playerOne = playerOne;
-		Vector2 headPosition = new Vector2(0, 0);
-		Vector2 tailPosition = new Vector2(-2 * BODY_RADIUS, 0);
-		FixtureDef head = createCircleFixture(world, headPosition,
-				BODY_RADIUS);
-		FixtureDef tail = createCircleFixture(world, tailPosition,
-				BODY_RADIUS);
+	public Ship(World world, TwoAxisControl controls, Vector2 spwan) {
+		this.controls = controls;
 
 		BodyDef bd = new BodyDef();
 		bd.allowSleep = true;
-		bd.position.set(0, 0);
+		bd.position.set(spwan.x, spwan.y);
 		body = world.createBody(bd);
 		body.setBullet(true);
-		body.setUserData(this);
 		body.setAngularDamping(0.2f);
 		body.setLinearDamping(0.1f);
-		body.createFixture(head);
-		body.createFixture(tail);
+		shipSections = factory.buildShip(body);
 		body.setType(BodyDef.BodyType.DynamicBody);
 
 	}
 
+	private float getTorque() {
+		float torque = 0;
+		for (ShipSection s : shipSections) {
+			torque += s.getTorqueContribution();
+		}
+		return torque;
+	}
+
+	private float getThrust() {
+		float thrust = 0;
+		for (ShipSection s : shipSections) {
+			thrust += s.getThrustContribution();
+		}
+		return thrust;
+	}
+	
+	public float getFuel() {
+		float fuel = 0;
+		for (ShipSection s : shipSections) {
+			fuel += s.getFuel();
+		}
+		return fuel;
+	}
+	
+	public float getFuelCapacity() {
+		float fuel = 0;
+		for (ShipSection s : shipSections) {
+			fuel += s.getFuelCapacity();
+		}
+		return fuel;
+	}
+	
 	private void updateMovements() {
-		//TODO: Always wakes player
-		float torque = -playerOne.getX() * TORQUE_PER_FRAME;
-		//body.applyTorque(torque, true);
-		body.applyAngularImpulse(torque, true);
-		//angle -= playerOne.getX() * TURN_SPEED_RADIANS_PER_FRAME;
-		//float speed = playerOne.getY() * SPEED_PER_SECOND;
-		float force = playerOne.getY() * FORCE_PER_FRAME;
+		// TODO: Always wakes player
+		float torque = -controls.getX() * getTorque();
+		float force = controls.getY() * getThrust();
+		
+		float fuelToBurn = Math.abs(torque) + Math.abs(force);
+		for (ShipSection s : shipSections) {
+			if (fuelToBurn <= 0) break;
+			fuelToBurn = s.burnFuel(fuelToBurn);
+		}
+		if (fuelToBurn > 0) {
+			//Out of fuel
+			return;
+		}
+		
 		float angle = getRotation();
 		float vX = (float) Math.cos(angle) * force;
 		float vY = (float) Math.sin(angle) * force;
 
+		body.applyAngularImpulse(torque, true);
 		body.applyForceToCenter(vX, vY, true);
 	}
 
@@ -90,10 +109,10 @@ public class Entity implements BodyData {
 	public Vector2 getPosition() {
 		return body.getPosition();
 	}
-
-	public void render(ShapeRenderer renderer) {
+	
+	public void update(float seconds) {
 		updateMovements();
-
+		
 		float x = body.getPosition().x;
 		float y = body.getPosition().y;
 		float angle = getRotation();
@@ -102,7 +121,17 @@ public class Entity implements BodyData {
 		Vector2 rayStart = body.getPosition();
 
 		scanArea(x, y, angle, world, rayStart);
+	}
+
+	public void render(ShapeRenderer renderer) {
 		
+
+		float x = body.getPosition().x;
+		float y = body.getPosition().y;
+		float angle = getRotation();
+
+		Vector2 rayStart = body.getPosition();
+
 		// Render
 
 		// Scanner
@@ -135,18 +164,20 @@ public class Entity implements BodyData {
 		// Ship
 		renderer.begin(ShapeType.Filled);
 		renderer.setColor(ColorPalate.SHIP);
-		
+
 		renderer.translate(x, y, 0);
 		renderer.rotate(0, 0, 1, angle * MathUtils.radiansToDegrees);
-		
+
 		for (Fixture fixture : body.getFixtureList()) {
-			CircleShape cs = (CircleShape)fixture.getShape();
-			if (cs == null) continue;
+			CircleShape cs = (CircleShape) fixture.getShape();
+			if (cs == null)
+				continue;
 			Vector2 shapePosition = cs.getPosition();
-			
+
 			renderer.circle(shapePosition.x, shapePosition.y, cs.getRadius());
 		}
-		
+		renderer.identity();
+
 		renderer.end();
 
 	}
@@ -154,7 +185,7 @@ public class Entity implements BodyData {
 	private void scanArea(float x, float y, float angle, World world,
 			Vector2 rayStart) {
 		sensorAccumulator.reset();
-		
+
 		// Main Scanner
 		for (float offset = -SCAN_HALF_RADIUS; offset <= SCAN_HALF_RADIUS; offset += SCAN_RADIUS
 				/ SCAN_SLICES) {
@@ -180,15 +211,5 @@ public class Entity implements BodyData {
 
 			world.rayCast(sensorAccumulator, rayStart, rayEnd);
 		}
-	}
-
-	@Override
-	public BodyType getType() {
-		return BodyType.PLAYER;
-	}
-
-	@Override
-	public Color getMaterialColor() {
-		return ColorPalate.SHIP;
 	}
 }

@@ -11,27 +11,31 @@ import com.badlogic.gdx.physics.box2d.RayCastCallback;
 public class SensorAccumlator implements RayCastCallback {
 	private List<SensorHit> hits = new ArrayList<SensorHit>();
 	private List<SensorHit> immutableHits = Collections.unmodifiableList(hits);
-	
+
 	public void reset() {
 		hits.clear();
 	}
-	
-	//Returns immutable list
+
+	// Returns immutable list
 	public List<SensorHit> getHits() {
 		return immutableHits;
 	}
-	
+
 	@Override
 	public float reportRayFixture(Fixture fixture, Vector2 point,
 			Vector2 normal, float fraction) {
 
-		//Copy is needed as box2d reuses it
+		// Copy is needed as box2d reuses it
 		SensorHit hit = new SensorHit();
-		hit.data = (BodyData)fixture.getBody().getUserData();
+		if (fixture.getUserData() != null) {
+			hit.data = (BodyData) fixture.getUserData();
+		} else {
+			hit.data = (BodyData) fixture.getBody().getUserData();
+		}
 		hit.hitLocation = point.cpy();
 		hit.normal = normal.cpy();
 		hits.add(hit);
 
-		return -1;
+		return 1;
 	}
 }
