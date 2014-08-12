@@ -30,6 +30,7 @@ public class BodyHelper {
 		bd.position.set(x, y);
 		Body body = world.createBody(bd);
 		body.setUserData(data);
+		body.setLinearDamping(0.05f);
 		body.createFixture(fdef);
 		if (isStatic) {
 			body.setType(BodyDef.BodyType.StaticBody);

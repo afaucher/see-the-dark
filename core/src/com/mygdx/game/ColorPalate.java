@@ -8,5 +8,6 @@ public class ColorPalate {
 	public static final Color SHIP = new Color(0.71f, 0.32f, 0.12f, 1.0f); //Red
 	public static final Color SCANNER = new Color(0.39f, 0.23f, 0.05f, 1.0f); //Brown
 	
+	public static final Color BALL = SCANNER;
 	public static final Color TREE = HITS;
 }

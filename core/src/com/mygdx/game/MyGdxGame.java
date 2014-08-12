@@ -7,16 +7,12 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
-	//SpriteBatch batch;
-	//Texture img;
 	private OrthographicCamera camera;
 	private Field field;
 	ShapeRenderer renderer;
@@ -27,8 +23,6 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public void create() {
-		//batch = new SpriteBatch();
-		//img = new Texture("badlogic.jpg");
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 800);
 

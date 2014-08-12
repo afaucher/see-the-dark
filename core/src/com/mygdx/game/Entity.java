@@ -25,10 +25,6 @@ public class Entity implements BodyData {
 	private static final float SCAN_RADIUS = SCAN_HALF_RADIUS * 2.0f;
 	private static final int SCAN_SLICES = 40;
 
-
-	
-
-
 	public Entity(World world, TwoAxisControl playerOne) {
 		this.playerOne = playerOne;
 		body = BodyHelper.createCircle(world, 0, 0, BODY_RADIUS, false, this);
@@ -79,6 +75,7 @@ public class Entity implements BodyData {
 		}
 
 		// Global Scanner
+		//TODO: Jiggles on rotation which the Main scanner does not :/
 		float globalScannerLength = SCAN_LENGTH / 2;
 		float globalSliceRadians = (MathUtils.PI2 - SCAN_RADIUS) / SCAN_SLICES;
 		for (float offset = SCAN_HALF_RADIUS; offset <= MathUtils.PI2
@@ -127,8 +124,6 @@ public class Entity implements BodyData {
 		renderer.end();
 
 	}
-
-
 
 	@Override
 	public BodyType getType() {

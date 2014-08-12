@@ -9,10 +9,13 @@ public class RandomField implements FieldLayout {
 	Random RAND = new Random();
 	
 
-	private static final float MAX_TREE_RADIUS = 30.0f;
-	private static final float MIN_TREE_RADIUS = 5.0f;
+	private static final float MAX_TREE_RADIUS = 50.0f;
+	private static final float MIN_TREE_RADIUS = 10.0f;
 	
-	private static final BodyData bouncyTreeBodyData = new BodyData() {
+	private static final float MAX_BALL_RADIUS = 25.0f;
+	private static final float MIN_BALL_RADIUS = 5.0f;
+	
+	private static final BodyData bouncyBallBodyData = new BodyData() {
 
 		@Override
 		public BodyType getType() {
@@ -21,7 +24,7 @@ public class RandomField implements FieldLayout {
 
 		@Override
 		public Color getMaterialColor() {
-			return ColorPalate.TREE;
+			return ColorPalate.BALL;
 		}
 	};
 	
@@ -34,7 +37,7 @@ public class RandomField implements FieldLayout {
 
 		@Override
 		public Color getMaterialColor() {
-			return ColorPalate.SHIP;
+			return ColorPalate.TREE;
 		}
 	};
 
@@ -42,15 +45,15 @@ public class RandomField implements FieldLayout {
 	public void populateField(World world) {
 		//Create World Objects
 		
-		//Specifically bouncy trees
+		//Specifically bouncy balls
 		for (int i = 0; i < 25; i++) {
 			float x = RAND.nextFloat() * 1000;
 			float y = RAND.nextFloat() * 1000;
 			float radius = RAND.nextFloat()
-					* (MAX_TREE_RADIUS - MIN_TREE_RADIUS) + MIN_TREE_RADIUS;
-			BodyHelper.createCircle(world, x, y, radius, false, bouncyTreeBodyData);
+					* (MAX_BALL_RADIUS - MIN_BALL_RADIUS) + MIN_BALL_RADIUS;
+			BodyHelper.createCircle(world, x, y, radius, false, bouncyBallBodyData);
 		}
-		
+		//Trees
 		for (int i = 0; i < 25; i++) {
 			float x = RAND.nextFloat() * 1000;
 			float y = RAND.nextFloat() * 1000;
