@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
@@ -16,67 +17,31 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Entity implements RayCastCallback {
+public class Entity implements RayCastCallback, BodyData {
 
 	private Body body;
 	private float angle = 0;
-	private List<Vector2> hits = new ArrayList<Vector2>();
+	private List<SensorHit> hits = new ArrayList<SensorHit>();
 	private TwoAxisControl playerOne;
 	private static final float SCAN_LENGTH = 300.0f;
 	private static final float BODY_RADIUS = 10.0f;
 	private static final float HIT_RADIUS = 5.0f;
 	private static final float TURN_SPEED_RADIANS_PER_FRAME = 0.05f;
 	private static final float SPEED_PER_SECOND = 100.0f;
-	private static final float MAX_TREE_RADIUS = 30.0f;
-	private static final float MIN_TREE_RADIUS = 5.0f;
 	private static final float SCAN_HALF_RADIUS = 1.0f;
 	private static final float SCAN_RADIUS = SCAN_HALF_RADIUS * 2.0f;
 	private static final int SCAN_SLICES = 40;
 
-	Random RAND = new Random();
-
-	/**
-	 * Creates a circle object with the given position and radius. Resitution
-	 * defaults to 0.6.
-	 */
-	public static Body createCircle(World world, float x, float y,
-			float radius, boolean isStatic) {
-		CircleShape sd = new CircleShape();
-		sd.setRadius(radius);
-
-		FixtureDef fdef = new FixtureDef();
-		fdef.shape = sd;
-		fdef.density = 1.0f;
-		fdef.friction = 0.5f;
-		fdef.restitution = 0.6f;
-
-		BodyDef bd = new BodyDef();
-		// bd.isBullet = true;
-		bd.allowSleep = true;
-		bd.position.set(x, y);
-		Body body = world.createBody(bd);
-		body.createFixture(fdef);
-		if (isStatic) {
-			body.setType(BodyDef.BodyType.StaticBody);
-		} else {
-			body.setType(BodyDef.BodyType.DynamicBody);
-		}
-		return body;
+	public class SensorHit {
+		Vector2 hitLocation = null;
+		Vector2 normal = null;
+		BodyData data = null;
 	}
 
 	public Entity(World world, TwoAxisControl playerOne) {
 		this.playerOne = playerOne;
-		body = createCircle(world, 0, 0, BODY_RADIUS, false);
+		body = BodyHelper.createCircle(world, 0, 0, BODY_RADIUS, false, this);
 		body.setBullet(true);
-
-		//Create World Objects
-		for (int i = 0; i < 50; i++) {
-			float x = RAND.nextFloat() * 1000;
-			float y = RAND.nextFloat() * 1000;
-			float radius = RAND.nextFloat()
-					* (MAX_TREE_RADIUS - MIN_TREE_RADIUS) + MIN_TREE_RADIUS;
-			createCircle(world, x, y, radius, false);
-		}
 	}
 
 	private void updateMovements() {
@@ -140,8 +105,8 @@ public class Entity implements RayCastCallback {
 		// Scanner
 		renderer.begin(ShapeType.Line);
 		renderer.setColor(ColorPalate.SCANNER);
-		for (Vector2 hit : hits) {
-			renderer.line(rayStart, hit);
+		for (SensorHit hit : hits) {
+			renderer.line(rayStart, hit.hitLocation);
 		}
 		float startArcDeg = (angle - SCAN_HALF_RADIUS)
 				* MathUtils.radiansToDegrees;
@@ -153,9 +118,14 @@ public class Entity implements RayCastCallback {
 
 		// Hits
 		renderer.begin(ShapeType.Filled);
-		renderer.setColor(ColorPalate.HITS);
-		for (Vector2 hit : hits) {
-			renderer.circle(hit.x, hit.y, HIT_RADIUS);
+		for (SensorHit hit : hits) {
+			Vector2 hitLocation = hit.hitLocation;
+			if (hit.data != null) {
+				renderer.setColor(hit.data.getMaterialColor());
+			} else {
+				renderer.setColor(ColorPalate.HITS);
+			}
+			renderer.circle(hitLocation.x, hitLocation.y, HIT_RADIUS);
 		}
 		renderer.end();
 
@@ -175,8 +145,22 @@ public class Entity implements RayCastCallback {
 		}
 
 		//Copy is needed as box2d reuses it
-		hits.add(point.cpy());
+		SensorHit hit = new SensorHit();
+		hit.data = (BodyData)fixture.getBody().getUserData();
+		hit.hitLocation = point.cpy();
+		hit.normal = normal.cpy();
+		hits.add(hit);
 
 		return -1;
+	}
+
+	@Override
+	public BodyType getType() {
+		return BodyType.PLAYER;
+	}
+
+	@Override
+	public Color getMaterialColor() {
+		return ColorPalate.SHIP;
 	}
 }

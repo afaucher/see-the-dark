@@ -77,7 +77,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		renderMean.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
 		
 		if (TimeUtils.nanoTime() - startTime > 1000000000) {
-			Gdx.app.log("Bouncy", "fps: " + Gdx.graphics.getFramesPerSecond() + " FPS, physics: " + physicsMean.getMean() * 1000
+			Gdx.app.log("Profile: ", "fps: " + Gdx.graphics.getFramesPerSecond() + " FPS, physics: " + physicsMean.getMean() * 1000
 				+ ", rendering: " + renderMean.getMean() * 1000 + "");
 			startTime = TimeUtils.nanoTime();
 		}

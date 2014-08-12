@@ -19,6 +19,9 @@ public class Field {
 		gameTime = 0;
 		
 		entity = new Entity(world, playerOne);
+		
+		FieldLayout fieldLayout = new RandomField();
+		fieldLayout.populateField(world);
 	}
 	
 	/** Called to advance the game's state by the specified number of milliseconds. iters is the number of times to call the Box2D
