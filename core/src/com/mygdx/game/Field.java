@@ -28,14 +28,14 @@ public class Field {
 		immutableShips = Collections.unmodifiableList(ships);
 
 		ships.add(new Ship(world, playerOne, spwanOne));
-		ships.add(new Ship(world, playerOne, spwanTwo));
+		ships.add(new Ship(world, new TwoAxisControl(), spwanTwo));
 
 		FieldLayout fieldLayout = new RandomField();
 		fieldLayout.populateField(world);
 	}
 	
 	public List<Ship> getShips() {
-		return ships;
+		return immutableShips;
 	}
 	
 
@@ -65,8 +65,9 @@ public class Field {
 	}
 
 	public void render(ShapeRenderer renderer) {
+		//TODO: Until we know who we are rendering, just render the first as local
 		for (Ship s : ships) {
-			s.render(renderer);
+			s.render(renderer, ships.get(0) == s);
 		}
 	}
 }

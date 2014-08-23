@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -11,6 +12,9 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
+import com.mygdx.game.ship.Component;
+import com.mygdx.game.ship.CompoundShip;
+import com.mygdx.game.ship.SensorComponent;
 import com.mygdx.game.ship.ShipFactory;
 import com.mygdx.game.ship.ShipSection;
 import com.mygdx.game.ship.StaticShipFactory;
@@ -21,14 +25,18 @@ public class Ship {
 
 	private TwoAxisControl controls = null;
 	private SensorAccumlator sensorAccumulator = new SensorAccumlator();
-	private List<ShipSection> shipSections = null;
 
-	private static final float SCAN_LENGTH = 300.0f;
-	private static final float GLOBAL_SCAN_LENGTH = SCAN_LENGTH / 2;
-	private static final float HIT_RADIUS = 5.0f;
-	private static final float SCAN_HALF_RADIUS = 1.0f;
-	private static final float SCAN_RADIUS = SCAN_HALF_RADIUS * 2.0f;
+	private List<Component> components = new ArrayList<Component>();
+
+	private CompoundShip ship = null;
+
+	private static final float SCAN_RADIUS = 300.0f;
+	private static final float GLOBAL_SCAN_RADIUS = SCAN_RADIUS / 2;
+	private static final float SCAN_HALF_ARC_RAD = 1.0f;
+	private static final float SCAN_ARC_RAD = SCAN_HALF_ARC_RAD * 2.0f;
 	private static final int SCAN_SLICES = 40;
+
+	private static final float HIT_RADIUS = 5.0f;
 
 	private static final ShipFactory factory = new StaticShipFactory();
 
@@ -42,58 +50,47 @@ public class Ship {
 		body.setBullet(true);
 		body.setAngularDamping(0.2f);
 		body.setLinearDamping(0.1f);
-		shipSections = factory.buildShip(body);
+		List<ShipSection> sections = factory.buildShip(body);
+		ship = new CompoundShip(sections);
 		body.setType(BodyDef.BodyType.DynamicBody);
 
+		Fixture firstFixture = sections.get(0).getFixture();
+		Fixture secondFixture = sections.get(1).getFixture();
+
+		SensorComponent frontSensor = new SensorComponent(SCAN_RADIUS,
+				-SCAN_HALF_ARC_RAD, SCAN_ARC_RAD / SCAN_SLICES, SCAN_SLICES);
+		frontSensor.mountToFixture(this, firstFixture);
+		
+		components.add(frontSensor);
+		
+		SensorComponent rearSensor = new SensorComponent(GLOBAL_SCAN_RADIUS,
+				SCAN_HALF_ARC_RAD, (MathUtils.PI2 - SCAN_ARC_RAD) / SCAN_SLICES, SCAN_SLICES);
+		rearSensor.mountToFixture(this, secondFixture);
+
+		components.add(rearSensor);
+
 	}
 
-	private float getTorque() {
-		float torque = 0;
-		for (ShipSection s : shipSections) {
-			torque += s.getTorqueContribution();
-		}
-		return torque;
-	}
-
-	private float getThrust() {
-		float thrust = 0;
-		for (ShipSection s : shipSections) {
-			thrust += s.getThrustContribution();
-		}
-		return thrust;
-	}
-	
 	public float getFuel() {
-		float fuel = 0;
-		for (ShipSection s : shipSections) {
-			fuel += s.getFuel();
-		}
-		return fuel;
+		return ship.getFuel();
 	}
-	
+
 	public float getFuelCapacity() {
-		float fuel = 0;
-		for (ShipSection s : shipSections) {
-			fuel += s.getFuelCapacity();
-		}
-		return fuel;
+		return ship.getFuelCapacity();
 	}
-	
+
 	private void updateMovements() {
 		// TODO: Always wakes player
-		float torque = -controls.getX() * getTorque();
-		float force = controls.getY() * getThrust();
-		
+		float torque = -controls.getX() * ship.getTorqueContribution();
+		float force = controls.getY() * ship.getThrustContribution();
+
 		float fuelToBurn = Math.abs(torque) + Math.abs(force);
-		for (ShipSection s : shipSections) {
-			if (fuelToBurn <= 0) break;
-			fuelToBurn = s.burnFuel(fuelToBurn);
-		}
+		fuelToBurn = ship.burnFuel(fuelToBurn);
 		if (fuelToBurn > 0) {
-			//Out of fuel
+			// Out of fuel
 			return;
 		}
-		
+
 		float angle = getRotation();
 		float vX = (float) Math.cos(angle) * force;
 		float vY = (float) Math.sin(angle) * force;
@@ -109,44 +106,38 @@ public class Ship {
 	public Vector2 getPosition() {
 		return body.getPosition();
 	}
-	
+
 	public void update(float seconds) {
 		updateMovements();
-		
-		float x = body.getPosition().x;
-		float y = body.getPosition().y;
-		float angle = getRotation();
 
-		World world = body.getWorld();
-		Vector2 rayStart = body.getPosition();
+		ship.update(seconds);
 
-		scanArea(x, y, angle, world, rayStart);
+		// scanArea(x, y, angle, world, rayStart);
+
+		sensorAccumulator.reset();
+		for (Component component : components) {
+			component.update(seconds);
+		}
 	}
 
-	public void render(ShapeRenderer renderer) {
-		
+	public void render(ShapeRenderer renderer, boolean full) {
+
+		if (!full) {
+			// TODO: If same team, render the sensors
+			// TODO: Better yet, do each layer in passes
+			return;
+		}
 
 		float x = body.getPosition().x;
 		float y = body.getPosition().y;
 		float angle = getRotation();
-
-		Vector2 rayStart = body.getPosition();
 
 		// Render
 
 		// Scanner
-		renderer.begin(ShapeType.Line);
-		renderer.setColor(ColorPalate.SCANNER);
-		for (SensorHit hit : sensorAccumulator.getHits()) {
-			renderer.line(rayStart, hit.hitLocation);
+		for (Component component : components) {
+			component.render(renderer, RenderLayer.SENSOR_GUIDE);
 		}
-		float startArcDeg = (angle - SCAN_HALF_RADIUS)
-				* MathUtils.radiansToDegrees;
-		float scannerArcDeg = SCAN_HALF_RADIUS * 2 * MathUtils.radiansToDegrees;
-		renderer.arc(x, y, SCAN_LENGTH, startArcDeg, scannerArcDeg);
-		renderer.arc(x, y, GLOBAL_SCAN_LENGTH, startArcDeg + scannerArcDeg,
-				360 - scannerArcDeg);
-		renderer.end();
 
 		// Hits
 		renderer.begin(ShapeType.Filled);
@@ -163,7 +154,6 @@ public class Ship {
 
 		// Ship
 		renderer.begin(ShapeType.Filled);
-		renderer.setColor(ColorPalate.SHIP);
 
 		renderer.translate(x, y, 0);
 		renderer.rotate(0, 0, 1, angle * MathUtils.radiansToDegrees);
@@ -174,42 +164,32 @@ public class Ship {
 				continue;
 			Vector2 shapePosition = cs.getPosition();
 
+			ShipSection section = (ShipSection) fixture.getUserData();
+			// TODO: Fixme
+			BodyData sectionBodyData = (BodyData) fixture.getUserData();
+
+			renderer.setColor(sectionBodyData.getMaterialColor());
 			renderer.circle(shapePosition.x, shapePosition.y, cs.getRadius());
+
+			// Heat Indicator
+			renderer.setColor(ColorPalate.SECTION_HEAT_INDICATOR);
+			float heatIndicatorRadius = cs.getRadius() * 3 / 4;
+			float heatPropotion = section.getHeat() / section.getHeatLimit();
+			renderer.arc(shapePosition.x, shapePosition.y, heatIndicatorRadius,
+					0, heatPropotion * 360);
+
+			// Hull Indicator
+			renderer.setColor(ColorPalate.SECTION_HULL_INDICATOR);
+			float hullIndicatorRadius = cs.getRadius() / 2;
+			renderer.arc(shapePosition.x, shapePosition.y, hullIndicatorRadius,
+					0, section.getHullIntegrity() * 360);
 		}
 		renderer.identity();
 
 		renderer.end();
-
 	}
 
-	private void scanArea(float x, float y, float angle, World world,
-			Vector2 rayStart) {
-		sensorAccumulator.reset();
-
-		// Main Scanner
-		for (float offset = -SCAN_HALF_RADIUS; offset <= SCAN_HALF_RADIUS; offset += SCAN_RADIUS
-				/ SCAN_SLICES) {
-
-			float rayEndX = x + (float) Math.cos(angle + offset) * SCAN_LENGTH;
-			float rayEndY = y + (float) Math.sin(angle + offset) * SCAN_LENGTH;
-			Vector2 rayEnd = new Vector2(rayEndX, rayEndY);
-
-			world.rayCast(sensorAccumulator, rayStart, rayEnd);
-		}
-
-		// Global Scanner
-		// TODO: Jiggles on rotation which the Main scanner does not :/
-		float globalSliceRadians = (MathUtils.PI2 - SCAN_RADIUS) / SCAN_SLICES;
-		for (float offset = SCAN_HALF_RADIUS; offset <= MathUtils.PI2
-				- SCAN_HALF_RADIUS; offset += globalSliceRadians) {
-
-			float rayEndX = x + (float) Math.cos(angle + offset)
-					* GLOBAL_SCAN_LENGTH;
-			float rayEndY = y + (float) Math.sin(angle + offset)
-					* GLOBAL_SCAN_LENGTH;
-			Vector2 rayEnd = new Vector2(rayEndX, rayEndY);
-
-			world.rayCast(sensorAccumulator, rayStart, rayEnd);
-		}
+	public SensorAccumlator getSensorAccumulator() {
+		return sensorAccumulator;
 	}
 }

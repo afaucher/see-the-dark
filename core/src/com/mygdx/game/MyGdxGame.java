@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -26,8 +27,10 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 	@Override
 	public void create() {
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 800, 800);
-
+		int x = Gdx.app.getGraphics().getWidth();
+		int y = Gdx.app.getGraphics().getHeight();
+		camera.setToOrtho(false, x, y);
+		
 		field = new Field();
 		renderer = new ShapeRenderer(500);
 
@@ -68,14 +71,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 		Ship ship = field.getShips().get(0);
 		
-		//HUD
-		//TODO: COLOR is ugly, drawing is in world coordinates and under game
-		renderer.identity();
-		renderer.setColor(ColorPalate.HUD);
-		renderer.begin(ShapeType.Filled);
-		float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
-		renderer.arc(0, 0, 20, 0, fuelGuageDegrees);
-		renderer.end();
+
 		
 		//Camera
 		Vector2 cameraPosition = ship.getPosition();
@@ -87,6 +83,25 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		field.render(renderer);
 		
 
+		//HUD
+		//TODO: COLOR is ugly, drawing is in world coordinates and under game
+		Matrix4 matrix = new Matrix4();
+		int width = Gdx.graphics.getWidth();
+		int height = Gdx.graphics.getHeight();
+		matrix.setToOrtho2D(0, 0, width, height);
+		renderer.setProjectionMatrix(matrix);
+		renderer.begin(ShapeType.Filled);
+		renderer.setColor(ColorPalate.HUD_BG);
+		renderer.circle(30, 30, 23);
+		renderer.setColor(ColorPalate.ACTIVE_HUD);
+		
+		float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
+		//float heatGuageDegrees = ship.g
+		renderer.arc(30, 30, 15, 0, fuelGuageDegrees);
+		//renderer.arc(40, 0, 20, 0, heatGuageDegrees);
+		//renderer.arc(80, 0, 20, 0, hullGuageDegrees);
+		
+		renderer.end();
 		
 		renderMean
 				.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
