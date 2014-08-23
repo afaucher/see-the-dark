@@ -54,13 +54,13 @@ public class SensorComponent implements Component {
 		Color color = sensorEnabled ? ColorPalate.ACTIVE_HUD
 				: ColorPalate.INACTIVE_HUD;
 		renderer.setColor(color);
-		renderer.arc(0, 0, height, 30, 60);
+		renderer.arc(destAvailable.x, 0, height, 30, 30);
 		renderer.end();
 
 		Rectangle result = new Rectangle(destAvailable);
 		result.setWidth(height);
 
-		return null;
+		return result;
 	}
 
 	@Override
@@ -96,19 +96,22 @@ public class SensorComponent implements Component {
 	}
 
 	public void render(ShapeRenderer renderer, RenderLayer layer) {
-		if (RenderLayer.SENSOR_GUIDE.equals(layer)) {
-			// Scanner
-			renderer.begin(ShapeType.Line);
-			renderer.setColor(ColorPalate.SCANNER);
-			Transform transform = getTransform();
-			Vector2 sensorBase = transform.getPosition();
-			float startArcRad = transform.getRotation() + sensorStartAngle;
-			float startArcDeg = startArcRad * MathUtils.radiansToDegrees;
-			float scannerArcDeg = sensorStepAngle * sensorSteps
-					* MathUtils.radiansToDegrees;
-			renderer.arc(sensorBase.x, sensorBase.y, sensorRadius, startArcDeg, scannerArcDeg);
-			renderer.end();
+		if (!RenderLayer.SENSOR_GUIDE.equals(layer) || !sensorEnabled) {
+			return;
 		}
+		// Scanner
+		renderer.begin(ShapeType.Line);
+		renderer.setColor(ColorPalate.SCANNER);
+		Transform transform = getTransform();
+		Vector2 sensorBase = transform.getPosition();
+		float startArcRad = transform.getRotation() + sensorStartAngle;
+		float startArcDeg = startArcRad * MathUtils.radiansToDegrees;
+		float scannerArcDeg = sensorStepAngle * sensorSteps
+				* MathUtils.radiansToDegrees;
+		renderer.arc(sensorBase.x, sensorBase.y, sensorRadius, startArcDeg,
+				scannerArcDeg);
+		renderer.end();
+
 	}
 
 	private Transform getTransform() {
@@ -123,6 +126,10 @@ public class SensorComponent implements Component {
 
 	@Override
 	public void update(float seconds) {
+		if (!sensorEnabled) {
+			return;
+		}
+
 		// Do transform between body & fixture offset
 		Transform transform = getTransform();
 		// Final position

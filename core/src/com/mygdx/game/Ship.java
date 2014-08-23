@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -27,6 +28,7 @@ public class Ship {
 	private SensorAccumlator sensorAccumulator = new SensorAccumlator();
 
 	private List<Component> components = new ArrayList<Component>();
+	private List<Component> immutableComponents = Collections.unmodifiableList(components);
 
 	private CompoundShip ship = null;
 
@@ -191,5 +193,9 @@ public class Ship {
 
 	public SensorAccumlator getSensorAccumulator() {
 		return sensorAccumulator;
+	}
+	
+	public List<Component> getComponents() {
+		return immutableComponents;
 	}
 }

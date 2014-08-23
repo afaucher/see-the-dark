@@ -11,9 +11,11 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.mygdx.game.ship.Component;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 	private OrthographicCamera camera;
@@ -90,18 +92,27 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		int height = Gdx.graphics.getHeight();
 		matrix.setToOrtho2D(0, 0, width, height);
 		renderer.setProjectionMatrix(matrix);
-		renderer.begin(ShapeType.Filled);
-		renderer.setColor(ColorPalate.HUD_BG);
-		renderer.circle(30, 30, 23);
-		renderer.setColor(ColorPalate.ACTIVE_HUD);
+		//renderer.begin(ShapeType.Filled);
+		//renderer.setColor(ColorPalate.HUD_BG);
+		//renderer.circle(30, 30, 23);
+		//renderer.setColor(ColorPalate.ACTIVE_HUD);
 		
-		float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
+		Rectangle hudSpaceAvailable = new Rectangle(5,5,200,30);
+		for (Component c : ship.getComponents()) {
+			if (!c.requiresHud()) continue;
+			Rectangle hudSpaceTaken = c.drawHud(renderer, hudSpaceAvailable);
+			hudSpaceAvailable.x += 5 + hudSpaceTaken.width;
+		}
+		
+		
+		
+		//float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
 		//float heatGuageDegrees = ship.g
-		renderer.arc(30, 30, 15, 0, fuelGuageDegrees);
+		//renderer.arc(30, 30, 15, 0, fuelGuageDegrees);
 		//renderer.arc(40, 0, 20, 0, heatGuageDegrees);
 		//renderer.arc(80, 0, 20, 0, hullGuageDegrees);
 		
-		renderer.end();
+		//renderer.end();
 		
 		renderMean
 				.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
@@ -113,6 +124,21 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 							+ ", rendering: " + renderMean.getMean() * 1000
 							+ "");
 			startTime = TimeUtils.nanoTime();
+		}
+	}
+	
+	private void pressNum(int pressedNum) {
+		Ship ship = field.getShips().get(0);
+		int componentNum = 0;
+		for (Component c : ship.getComponents()) {
+			if (c.requiresInput()) {
+				if (pressedNum == componentNum) {
+					c.keyPressed();
+					return;
+				}
+				
+				componentNum++;
+			}
 		}
 	}
 
@@ -130,6 +156,12 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 			break;
 		case Input.Keys.D:
 			playerOneControl.setX(1);
+			break;
+		case Input.Keys.NUM_1:
+			pressNum(0);
+			break;
+		case Input.Keys.NUM_2:
+			pressNum(1);
 			break;
 		}
 

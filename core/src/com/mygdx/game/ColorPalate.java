@@ -14,7 +14,7 @@ public class ColorPalate {
 	public static final Color TREE = HITS;
 	
 	public static final Color ACTIVE_HUD = new Color(0.67f, 0.84f, 0.90f, 1.0f); // Light Blue
-	public static final Color INACTIVE_HUD = new Color(0.47f, 0.64f, 0.70f, 1.0f); // Blue
+	public static final Color INACTIVE_HUD = new Color(0.37f, 0.54f, 0.60f, 1.0f); // Blue
 	public static final Color HUD_BG = new Color(0.95f,0.95f,0.95f,1); // Light Grey
 	
 	public static final Color SECTION_HULL_INDICATOR = new Color(0,0,0,1);
