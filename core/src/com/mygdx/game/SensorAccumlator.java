@@ -5,20 +5,34 @@ import java.util.Collections;
 import java.util.List;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.RayCastCallback;
+import com.badlogic.gdx.utils.Array;
 
 public class SensorAccumlator implements RayCastCallback {
 	private List<SensorHit> hits = new ArrayList<SensorHit>();
 	private List<SensorHit> immutableHits = Collections.unmodifiableList(hits);
+	private List<Emission> emissions = new ArrayList<Emission>();
 
-	public void reset() {
+	// private List<Emission> immutableEmissions =
+	// Collections.unmodifiableList(emissions);
+
+	public void resetActiveSensors() {
 		hits.clear();
+	}
+
+	public void resetPassiveSensors() {
+		emissions.clear();
 	}
 
 	// Returns immutable list
 	public List<SensorHit> getHits() {
 		return immutableHits;
+	}
+
+	public List<Emission> getReceivedEmissions() {
+		return emissions;
 	}
 
 	@Override
@@ -37,5 +51,23 @@ public class SensorAccumlator implements RayCastCallback {
 		hits.add(hit);
 
 		return 1;
+	}
+
+	public void accumulateEmissions(Body body) {
+		Array<Fixture> fixtures = body.getFixtureList();
+		for (Fixture fixture : fixtures) {
+			BodyData bodyData = (BodyData) fixture.getUserData();
+			if (bodyData == null)
+				continue;
+			List<Emission> bodyEmissions = bodyData.getEmissions();
+			this.emissions.addAll(bodyEmissions);
+			bodyData.resetEmissions();
+		}
+		BodyData bodyData = (BodyData) body.getUserData();
+		if (bodyData == null)
+			return;
+		List<Emission> emissions = bodyData.getEmissions();
+		emissions.addAll(emissions);
+
 	}
 }

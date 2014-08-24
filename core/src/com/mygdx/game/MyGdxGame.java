@@ -13,18 +13,25 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.mygdx.game.ship.Component;
+import com.mygdx.game.field.Field;
+import com.mygdx.game.ship.Ship;
+import com.mygdx.game.ship.components.Component;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
-	private OrthographicCamera camera;
-	private Field field;
-	ShapeRenderer renderer;
+	private OrthographicCamera camera = null;
+	private Field field = null;
+	ShapeRenderer renderer = null;
 	TwoAxisControl playerOneControl = new TwoAxisControl();
+	Ship playerOneShip = null;
 	WindowedMean physicsMean = new WindowedMean(10);
 	WindowedMean renderMean = new WindowedMean(10);
 	long startTime = TimeUtils.nanoTime();
+
+	private static final int HUD_PADDING = 5;
+	private static final int HUD_HEIGHT = 15;
 
 	@Override
 	public void create() {
@@ -32,13 +39,15 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		int x = Gdx.app.getGraphics().getWidth();
 		int y = Gdx.app.getGraphics().getHeight();
 		camera.setToOrtho(false, x, y);
-		
+
 		field = new Field();
 		renderer = new ShapeRenderer(500);
 
 		Gdx.input.setInputProcessor(this);
 
 		field.resetLevel(playerOneControl);
+
+		playerOneShip = field.getShips().get(0);
 	}
 
 	@Override
@@ -71,49 +80,37 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 		long startRender = TimeUtils.nanoTime();
 
-		Ship ship = field.getShips().get(0);
-		
+		Ship ship = playerOneShip;
 
-		
-		//Camera
+		// Camera
 		Vector2 cameraPosition = ship.getPosition();
 		camera.position.set(cameraPosition, 0);
 		camera.update();
 		renderer.identity();
 		renderer.setProjectionMatrix(camera.combined);
 
-		field.render(renderer);
-		
+		for (RenderLayer layer : RenderLayer.values()) {
 
-		//HUD
-		//TODO: COLOR is ugly, drawing is in world coordinates and under game
+			field.render(renderer, layer);
+		}
+
+		// HUD
+		// TODO: COLOR is ugly!!!
 		Matrix4 matrix = new Matrix4();
 		int width = Gdx.graphics.getWidth();
 		int height = Gdx.graphics.getHeight();
 		matrix.setToOrtho2D(0, 0, width, height);
 		renderer.setProjectionMatrix(matrix);
-		//renderer.begin(ShapeType.Filled);
-		//renderer.setColor(ColorPalate.HUD_BG);
-		//renderer.circle(30, 30, 23);
-		//renderer.setColor(ColorPalate.ACTIVE_HUD);
-		
-		Rectangle hudSpaceAvailable = new Rectangle(5,5,200,30);
+
+		Rectangle hudSpaceAvailable = new Rectangle(HUD_PADDING, HUD_PADDING,
+				200, HUD_HEIGHT);
 		for (Component c : ship.getComponents()) {
-			if (!c.requiresHud()) continue;
+			if (!c.requiresHud())
+				continue;
 			Rectangle hudSpaceTaken = c.drawHud(renderer, hudSpaceAvailable);
-			hudSpaceAvailable.x += 5 + hudSpaceTaken.width;
+			hudSpaceAvailable.x += HUD_PADDING + hudSpaceTaken.width;
 		}
-		
-		
-		
-		//float fuelGuageDegrees = (ship.getFuel() / ship.getFuelCapacity()) * 360;
-		//float heatGuageDegrees = ship.g
-		//renderer.arc(30, 30, 15, 0, fuelGuageDegrees);
-		//renderer.arc(40, 0, 20, 0, heatGuageDegrees);
-		//renderer.arc(80, 0, 20, 0, hullGuageDegrees);
-		
-		//renderer.end();
-		
+
 		renderMean
 				.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
 
@@ -126,9 +123,9 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 			startTime = TimeUtils.nanoTime();
 		}
 	}
-	
+
 	private void pressNum(int pressedNum) {
-		Ship ship = field.getShips().get(0);
+		Ship ship = playerOneShip;
 		int componentNum = 0;
 		for (Component c : ship.getComponents()) {
 			if (c.requiresInput()) {
@@ -136,7 +133,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 					c.keyPressed();
 					return;
 				}
-				
+
 				componentNum++;
 			}
 		}
@@ -191,7 +188,14 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-		return false;
+
+		Vector3 touchWorldCoordinate = new Vector3(screenX, screenY, 0);
+		Vector3 target3 = camera.unproject(touchWorldCoordinate);
+		Vector2 target2 = new Vector2(target3.x, target3.y);
+
+		playerOneShip.aimWeapons(target2);
+
+		return true;
 	}
 
 	@Override
