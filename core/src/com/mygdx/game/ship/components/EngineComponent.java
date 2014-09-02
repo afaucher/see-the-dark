@@ -18,107 +18,101 @@ import com.mygdx.game.util.PhysicsUtil;
 
 public class EngineComponent extends AbstractComponent {
 
-	boolean engineEnabled = false;
-	EngineContribution contirbution = null;
-	private static final float HEAT_PER_FUEL_JOULE = 0.0000075f;
-	private static final float ENGINE_EMISSION_DIST = 1000.0f;
+    private boolean engineEnabled = false;
+    private EngineContribution contirbution = null;
+    private static final float HEAT_PER_FUEL_JOULE = 0.0000075f;
+    private static final float ENGINE_EMISSION_DIST = 1000.0f;
 
-	public EngineComponent(float torqueJoule, float thrustJoule) {
-		this.contirbution = new EngineContribution(torqueJoule, thrustJoule);
-	}
+    public EngineComponent(float torqueJoule, float thrustJoule) {
+        this.contirbution = new EngineContribution(torqueJoule, thrustJoule);
+    }
 
-	private EmissionSource emissionSource = new EmissionSource(
-			EmissionPowerDropoff.EXPONENTIAL);
+    private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.EXPONENTIAL);
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.Engine;
-	}
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.Engine;
+    }
 
-	@Override
-	public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable) {
-		float height = destAvailable.getHeight();
-		float width = height / 2;
+    @Override
+    public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable) {
+        float height = destAvailable.getHeight();
+        float width = height / 2;
 
-		renderer.begin(ShapeType.Filled);
-		Color color = engineEnabled ? ColorPalate.ACTIVE_HUD
-				: ColorPalate.INACTIVE_HUD;
-		renderer.setColor(color);
-		renderer.rect(destAvailable.x, destAvailable.y, width, height / 2);
-		renderer.rect(destAvailable.x, destAvailable.y + height * 3 / 4, width,
-				height / 4);
+        renderer.begin(ShapeType.Filled);
+        Color color = engineEnabled ? ColorPalate.ACTIVE_HUD : ColorPalate.INACTIVE_HUD;
+        renderer.setColor(color);
+        renderer.rect(destAvailable.x, destAvailable.y, width, height / 2);
+        renderer.rect(destAvailable.x, destAvailable.y + height * 3 / 4, width, height / 4);
 
-		renderer.end();
+        renderer.end();
 
-		Rectangle result = new Rectangle(destAvailable);
-		result.setWidth(width);
+        Rectangle result = new Rectangle(destAvailable);
+        result.setWidth(width);
 
-		return result;
-	}
+        return result;
+    }
 
-	@Override
-	public boolean requiresHud() {
-		return true;
-	}
+    @Override
+    public boolean requiresHud() {
+        return true;
+    }
 
-	// Engine
-	public EngineContribution getEngineContribution() {
-		
-		ShipSection section = getMountedSection();
-		if (!engineEnabled || section.getHullIntegrity() <= 0) {
-			return new EngineContribution(0,0);
-		}
-		
-		return contirbution.cpy();
-	}
+    // Engine
+    public EngineContribution getEngineContribution() {
 
-	public void fireEngineFor(float torqueJoules, float thrustJoules) {
-		ShipSection section = getMountedSection();
-		float energy = (Math.abs(torqueJoules) + Math.abs(thrustJoules)) * HEAT_PER_FUEL_JOULE;
-		if (energy <= 0) {
-			return;
-		}
-		section.accumlateHeat(energy);
+        ShipSection section = getMountedSection();
+        if (!engineEnabled || section.getHullIntegrity() <= 0) {
+            return new EngineContribution(0, 0);
+        }
 
-		Fixture fixture = getMountedFixture();
-		Transform transform = PhysicsUtil
-				.getWorldFixturePositionTransform(fixture);
+        return contirbution.cpy();
+    }
 
-		World world = fixture.getBody().getWorld();
-		Vector2 source = transform.getPosition().cpy();
-		// Turn the opisite heading
-		float engineOutputRad = transform.getRotation() + MathUtils.PI;
-		float x = source.x + (float) Math.cos(engineOutputRad)
-				* ENGINE_EMISSION_DIST;
-		float y = source.y + (float) Math.sin(engineOutputRad)
-				* ENGINE_EMISSION_DIST;
-		Vector2 dest = new Vector2(x, y);
+    public void fireEngineFor(float torqueJoules, float thrustJoules) {
+        ShipSection section = getMountedSection();
+        float energy = (Math.abs(torqueJoules) + Math.abs(thrustJoules)) * HEAT_PER_FUEL_JOULE;
+        if (energy <= 0) {
+            return;
+        }
+        section.accumlateHeat(energy);
 
-		// TODO: Spray
-		emissionSource.emit(world, source, dest, energy);
-	}
+        Fixture fixture = getMountedFixture();
+        Transform transform = PhysicsUtil.getWorldFixturePositionTransform(fixture);
 
-	@Override
-	public boolean requiresInput() {
-		return true;
-	}
+        World world = fixture.getBody().getWorld();
+        Vector2 source = transform.getPosition().cpy();
+        // Turn the opisite heading
+        float engineOutputRad = transform.getRotation() + MathUtils.PI;
+        float x = source.x + (float) Math.cos(engineOutputRad) * ENGINE_EMISSION_DIST;
+        float y = source.y + (float) Math.sin(engineOutputRad) * ENGINE_EMISSION_DIST;
+        Vector2 dest = new Vector2(x, y);
 
-	@Override
-	public void keyPressed() {
-		engineEnabled = !engineEnabled;
-	}
+        // TODO: Spray
+        emissionSource.emit(world, source, dest, energy);
+    }
 
-	@Override
-	public void update(float seconds) {
-		// TODO Auto-generated method stub
+    @Override
+    public boolean requiresInput() {
+        return true;
+    }
 
-		// TODO: Always burn fuel while on, even inactive
-	}
+    @Override
+    public void keyPressed() {
+        engineEnabled = !engineEnabled;
+    }
 
-	@Override
-	public void render(ShapeRenderer renderer, RenderLayer layer) {
-		// TODO Auto-generated method stub
+    @Override
+    public void update(float seconds) {
+        // TODO Auto-generated method stub
 
-	}
+        // TODO: Always burn fuel while on, even inactive
+    }
+
+    @Override
+    public void render(ShapeRenderer renderer, RenderLayer layer) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

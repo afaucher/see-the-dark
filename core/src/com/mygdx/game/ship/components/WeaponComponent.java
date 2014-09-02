@@ -28,7 +28,7 @@ public class WeaponComponent extends AbstractComponent {
     private static float weaponTargetRadius = 5.0f;
     private static final Vector2 BASE_ANGLE = new Vector2(1, 0);
     private static final float WEAPON_EMISSION_POWER = 100000.0f;
-    //private static final float WEAPON_RADIUS = 1000.0f;
+    // private static final float WEAPON_RADIUS = 1000.0f;
     private static final float HEAT_PER_WEAPON_JOULE = 0.1f;
 
     private Vector2 weaponTarget = null;
@@ -99,7 +99,7 @@ public class WeaponComponent extends AbstractComponent {
         }
         Fixture fixture = getMountedFixture();
         ShipSection section = getMountedSection();
-        
+
         if (!weaponEnabled || section.getHullIntegrity() <= 0) {
             return;
         }

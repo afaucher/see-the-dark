@@ -19,66 +19,60 @@ import com.mygdx.game.util.PhysicsUtil;
 
 public class Star extends AbstractBodyData implements FieldUpdateCallback {
 
-	private static Random RAND = new Random();
-	
-	// TODO: Make configurable
-	private float emissionRatePerSecond = 1000;
-	private float emissionPower = 100000;
-	private World world = null;
-	private EmissionSource emissionSource = new EmissionSource(
-			EmissionPowerDropoff.EXPONENTIAL);
-	private Fixture fixture = null;
-	private float radius;
-	private float RAY_MAX_RADIUS = 3000.0f;
-	private float SUN_TEMP = 1000000.0f;
+    private static Random RAND = new Random();
 
-	public Star(RandomField randomField, World world) {
-		super(false);
-		this.world = world;
+    // TODO: Make configurable
+    private float emissionRatePerSecond = 1000;
+    private float emissionPower = 100000;
+    private World world = null;
+    private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.EXPONENTIAL);
+    private Fixture fixture = null;
+    private float radius;
+    private float RAY_MAX_RADIUS = 3000.0f;
+    private float SUN_TEMP = 1000000.0f;
 
-		float x = RAND.nextFloat() * -1000;
-		float y = RAND.nextFloat() * -1000;
-		radius = RAND.nextFloat() * 100 + 100;
+    public Star(RandomField randomField, World world) {
+        super(false);
+        this.world = world;
 
-		Body body = BodyHelper.createCircle(world, x, y, radius, true, this);
-		fixture = body.getFixtureList().first();
-		
-		fixture.setDensity(5);
-		body.resetMassData();
-	}
+        float x = RAND.nextFloat() * -1000;
+        float y = RAND.nextFloat() * -1000;
+        radius = RAND.nextFloat() * 100 + 100;
 
-	@Override
-	public Color getMaterialColor() {
-		return ColorPalate.SUN;
-	}
+        Body body = BodyHelper.createCircle(world, x, y, radius, true, this);
+        fixture = body.getFixtureList().first();
 
-	@Override
-	public void updateCallback(float seconds) {
+        fixture.setDensity(5);
+        body.resetMassData();
+    }
 
-		Vector2 root = PhysicsUtil.getWorldFixturePosition(fixture);
-		for (int i = 0; i < emissionRatePerSecond * seconds; i++) {
+    @Override
+    public Color getMaterialColor() {
+        return ColorPalate.SUN;
+    }
 
-			float exitPointRad = RAND.nextFloat() * MathUtils.PI2;
-			Vector2 source = new Vector2(root.x
-					+ (float) Math.cos(exitPointRad) * radius, root.y
-					+ (float) Math.sin(exitPointRad) * radius);
+    @Override
+    public void updateCallback(float seconds) {
 
-			float exitAngleRad = exitPointRad
-					+ (RAND.nextFloat() * MathUtils.PI)
-					- (MathUtils.PI / 2.0f);
+        Vector2 root = PhysicsUtil.getWorldFixturePosition(fixture);
+        for (int i = 0; i < emissionRatePerSecond * seconds; i++) {
 
-			float destX = source.x + (float) Math.cos(exitAngleRad)
-					* RAY_MAX_RADIUS;
-			float destY = source.y + (float) Math.sin(exitAngleRad)
-					* RAY_MAX_RADIUS;
-			Vector2 dest = new Vector2(destX, destY);
+            float exitPointRad = RAND.nextFloat() * MathUtils.PI2;
+            Vector2 source = new Vector2(root.x + (float) Math.cos(exitPointRad) * radius, root.y
+                    + (float) Math.sin(exitPointRad) * radius);
 
-			emissionSource.emit(world, source, dest, emissionPower);
-		}
-	}
+            float exitAngleRad = exitPointRad + (RAND.nextFloat() * MathUtils.PI) - (MathUtils.PI / 2.0f);
 
-	@Override
-	public float getTemperature() {
-		return SUN_TEMP;
-	}
+            float destX = source.x + (float) Math.cos(exitAngleRad) * RAY_MAX_RADIUS;
+            float destY = source.y + (float) Math.sin(exitAngleRad) * RAY_MAX_RADIUS;
+            Vector2 dest = new Vector2(destX, destY);
+
+            emissionSource.emit(world, source, dest, emissionPower);
+        }
+    }
+
+    @Override
+    public float getTemperature() {
+        return SUN_TEMP;
+    }
 }

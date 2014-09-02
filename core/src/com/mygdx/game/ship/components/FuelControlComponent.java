@@ -10,113 +10,111 @@ import com.mygdx.game.ColorPalate;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.ship.Ship;
 
-public class FuelControlComponent extends AbstractComponent implements
-		FuelControl {
+public class FuelControlComponent extends AbstractComponent implements FuelControl {
 
-	@Override
-	public ComponentType getComponentType() {
-		return ComponentType.FuelControl;
-	}
+    @Override
+    public ComponentType getComponentType() {
+        return ComponentType.FuelControl;
+    }
 
-	@Override
-	public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable) {
-		float height = destAvailable.getHeight();
+    @Override
+    public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable) {
+        float height = destAvailable.getHeight();
 
-		float fuelGuageDegrees = (getFuel() / getFuelCapacity()) * 180;
+        float fuelGuageDegrees = (getFuel() / getFuelCapacity()) * 180;
 
-		renderer.begin(ShapeType.Filled);
-		renderer.setColor(ColorPalate.ACTIVE_HUD);
+        renderer.begin(ShapeType.Filled);
+        renderer.setColor(ColorPalate.ACTIVE_HUD);
 
-		renderer.arc(destAvailable.x + height, destAvailable.y, height, 0,
-				fuelGuageDegrees);
+        renderer.arc(destAvailable.x + height, destAvailable.y, height, 0, fuelGuageDegrees);
 
-		renderer.end();
+        renderer.end();
 
-		Rectangle result = new Rectangle(destAvailable);
-		result.setWidth(height * 2);
+        Rectangle result = new Rectangle(destAvailable);
+        result.setWidth(height * 2);
 
-		return result;
-	}
+        return result;
+    }
 
-	@Override
-	public boolean requiresHud() {
-		return true;
-	}
+    @Override
+    public boolean requiresHud() {
+        return true;
+    }
 
-	@Override
-	public boolean requiresInput() {
-		return false;
-	}
+    @Override
+    public boolean requiresInput() {
+        return false;
+    }
 
-	@Override
-	public void keyPressed() {
-	}
+    @Override
+    public void keyPressed() {
+    }
 
-	@Override
-	public void update(float seconds) {
-	}
+    @Override
+    public void update(float seconds) {
+    }
 
-	private List<FuelControl> getFuelControls() {
-		List<FuelControl> fuelControls = new ArrayList<FuelControl>();
+    private List<FuelControl> getFuelControls() {
+        List<FuelControl> fuelControls = new ArrayList<FuelControl>();
 
-		Ship ship = getShip();
-		List<Component> components = ship.getComponents();
+        Ship ship = getShip();
+        List<Component> components = ship.getComponents();
 
-		for (Component c : components) {
-			if (c == this) {
-				continue;
-			}
-			if (!ComponentType.Fuel.equals(c.getComponentType())) {
-				continue;
-			}
-			FuelControl fuelControl = (FuelControl) c;
+        for (Component c : components) {
+            if (c == this) {
+                continue;
+            }
+            if (!ComponentType.Fuel.equals(c.getComponentType())) {
+                continue;
+            }
+            FuelControl fuelControl = (FuelControl) c;
 
-			fuelControls.add(fuelControl);
-		}
+            fuelControls.add(fuelControl);
+        }
 
-		return fuelControls;
-	}
+        return fuelControls;
+    }
 
-	@Override
-	public float getFuel() {
-		float fuel = 0;
+    @Override
+    public float getFuel() {
+        float fuel = 0;
 
-		List<FuelControl> fuelControls = getFuelControls();
+        List<FuelControl> fuelControls = getFuelControls();
 
-		for (FuelControl c : fuelControls) {
-			fuel += c.getFuel();
-		}
-		return fuel;
-	}
+        for (FuelControl c : fuelControls) {
+            fuel += c.getFuel();
+        }
+        return fuel;
+    }
 
-	@Override
-	public float getFuelCapacity() {
-		float fuel = 0;
+    @Override
+    public float getFuelCapacity() {
+        float fuel = 0;
 
-		List<FuelControl> fuelControls = getFuelControls();
+        List<FuelControl> fuelControls = getFuelControls();
 
-		for (FuelControl c : fuelControls) {
+        for (FuelControl c : fuelControls) {
 
-			fuel += c.getFuelCapacity();
-		}
-		return fuel;
-	}
+            fuel += c.getFuelCapacity();
+        }
+        return fuel;
+    }
 
-	@Override
-	public float burnFuel(float toBurn) {
-		List<FuelControl> fuelControls = getFuelControls();
+    @Override
+    public float burnFuel(float toBurn) {
+        List<FuelControl> fuelControls = getFuelControls();
 
-		for (FuelControl c : fuelControls) {
-			if (toBurn <= 0)
-				break;
-			toBurn = c.burnFuel(toBurn);
-		}
-		return toBurn;
-	}
+        for (FuelControl c : fuelControls) {
+            if (toBurn <= 0)
+                break;
+            toBurn = c.burnFuel(toBurn);
+        }
+        return toBurn;
+    }
 
-	@Override
-	public void render(ShapeRenderer renderer, RenderLayer layer) {
+    @Override
+    public void render(ShapeRenderer renderer, RenderLayer layer) {
 
-	}
+    }
 
 }

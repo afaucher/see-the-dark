@@ -130,7 +130,7 @@ public class SensorComponent extends AbstractComponent {
             // can both see eachother.
             // TODO: This is doing 2x ray casts, once to detect, once to emit
             emissionSource.emit(world, rayStart, rayEnd, SENSOR_EMISSION_POWER);
-            //TODO: Generate heat
+            // TODO: Generate heat
         }
     }
 

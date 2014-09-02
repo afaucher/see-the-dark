@@ -11,19 +11,19 @@ import com.badlogic.gdx.graphics.Color;
  */
 public interface BodyData {
 
-	// Result is intended to be immutable
-	public Color getMaterialColor();
+    // Result is intended to be immutable
+    public Color getMaterialColor();
 
-	public void receiveEmission(Emission emission);
+    public void receiveEmission(Emission emission);
 
-	public void resetEmissions();
+    public void resetEmissions();
 
-	public List<Emission> getEmissions();
+    public List<Emission> getEmissions();
 
-	public float getTemperature();
+    public float getTemperature();
 
-	// TODO: Scale for mass
-	public void accumlateHeat(float energy);
+    // TODO: Scale for mass
+    public void accumlateHeat(float energy);
 
-	public void disapateHeat(float energy);
+    public void disapateHeat(float energy);
 }

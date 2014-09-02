@@ -15,113 +15,123 @@ import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.ship.Ship;
 
 public class Field {
-	private World world;
-	@SuppressWarnings("unused")
+    private World world;
+    @SuppressWarnings("unused")
     private long gameTime;
-	private List<Ship> ships = null;
-	private List<Ship> immutableShips = null;
-	private List<FieldUpdateCallback> updates = null;
-	private static final boolean GRAVITY_ENABLED = false;
-	
-	//public static final double G = 6.67300E-11;
-	//Extreme gravity!
-	public static final double G = 1.0f;
-	
-	private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
+    private List<Ship> ships = null;
+    private List<Ship> immutableShips = null;
+    private List<FieldUpdateCallback> updates = null;
+    private static final boolean GRAVITY_ENABLED = false;
 
-	public void resetLevel(TwoAxisControl playerOne) {
-		Vector2 gravity = new Vector2(0.0f, 0.0f);
-		boolean doSleep = true;
-		world = new World(gravity, doSleep);
+    // public static final double G = 6.67300E-11;
+    // Extreme gravity!
+    public static final double G = 1.0f;
 
-		gameTime = 0;
+    private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
 
-		Vector2 spwanOne = new Vector2(0, 0);
-		Vector2 spwanTwo = new Vector2(100, 100);
+    public void resetLevel(TwoAxisControl playerOne) {
+        Vector2 gravity = new Vector2(0.0f, 0.0f);
+        boolean doSleep = true;
+        world = new World(gravity, doSleep);
 
-		ships = new ArrayList<Ship>();
-		immutableShips = Collections.unmodifiableList(ships);
+        gameTime = 0;
 
-		ships.add(new Ship(world, playerOne, spwanOne));
-		ships.add(new Ship(world, new TwoAxisControl(), spwanTwo));
+        Vector2 spwanOne = new Vector2(0, 0);
+        Vector2 spwanTwo = new Vector2(100, 100);
 
-		FieldLayout fieldLayout = new RandomField();
-		updates = fieldLayout.populateField(world);
-	}
+        ships = new ArrayList<Ship>();
+        immutableShips = Collections.unmodifiableList(ships);
 
-	public List<Ship> getShips() {
-		return immutableShips;
-	}
-	
-	private void applyBodyGravity(World w) {
-		if (!GRAVITY_ENABLED) return;
-		world.getBodies(gravityBodyArray);
-		
-		if (gravityBodyArray.items == null) return;
-		
-		for (Body gravitySource : gravityBodyArray.items) {
-			if (gravitySource == null) continue;
-			
-			float sourceMass = gravitySource.getMass();
-			if (sourceMass <= 0) continue;
-			Vector2 sourcePosition = gravitySource.getPosition();
-			for (Body gravityDest : gravityBodyArray.items) {
-				if (gravityDest == null) continue;
-				if (gravitySource == gravityDest) continue;
-				
-				float destMass = gravityDest.getMass();
-				if (destMass <= 0) continue;
-				Vector2 destPosition = gravityDest.getPosition();
-				float distance2 = sourcePosition.dst2(destPosition);
-				if (distance2 == 0) continue;
-				double force = G * sourceMass * destMass / distance2;
-				if (force <= 0) continue;
-				
-				Vector2 forceV = sourcePosition.sub(destPosition).nor().scl((float)force);
-				
-				//TODO: This is N^2 and we will compute every value 2x, we can do better
-				
-				gravityDest.applyForceToCenter(forceV, true);
-			}
-		}
-	}
+        ships.add(new Ship(world, playerOne, spwanOne));
+        ships.add(new Ship(world, new TwoAxisControl(), spwanTwo));
 
-	/**
-	 * Called to advance the game's state by the specified number of
-	 * milliseconds. iters is the number of times to call the Box2D World.step
-	 * method; more iterations produce better accuracy. After updating physics,
-	 * processes element collisions, calls tick() on every FieldElement, and
-	 * performs scheduled actions.
-	 */
-	public void tick(long msecs, int iters) {
-		float seconds = (msecs / 1000.0f);
-		float dt = seconds / iters;
+        FieldLayout fieldLayout = new RandomField();
+        updates = fieldLayout.populateField(world);
+    }
 
-		for (int i = 0; i < iters; i++) {
-			// clearBallContacts();
-			world.step(dt, 10, 10);
-			// processBallContacts();
-		}
+    public List<Ship> getShips() {
+        return immutableShips;
+    }
 
-		gameTime += msecs;
-		// processElementTicks();
-		
-		applyBodyGravity(world);
+    private void applyBodyGravity(World w) {
+        if (!GRAVITY_ENABLED)
+            return;
+        world.getBodies(gravityBodyArray);
 
-		for (Ship s : ships) {
-			s.update(seconds);
-		}
+        if (gravityBodyArray.items == null)
+            return;
 
-		for (FieldUpdateCallback callback : updates) {
-			callback.updateCallback(seconds);
-		}
-	}
+        for (Body gravitySource : gravityBodyArray.items) {
+            if (gravitySource == null)
+                continue;
 
-	public void render(ShapeRenderer renderer, RenderLayer layer) {
-		// TODO: Until we know who we are rendering, just render the first as
-		// local
-		for (Ship s : ships) {
-			s.render(renderer, ships.get(0) == s, layer);
-		}
-	}
+            float sourceMass = gravitySource.getMass();
+            if (sourceMass <= 0)
+                continue;
+            Vector2 sourcePosition = gravitySource.getPosition();
+            for (Body gravityDest : gravityBodyArray.items) {
+                if (gravityDest == null)
+                    continue;
+                if (gravitySource == gravityDest)
+                    continue;
+
+                float destMass = gravityDest.getMass();
+                if (destMass <= 0)
+                    continue;
+                Vector2 destPosition = gravityDest.getPosition();
+                float distance2 = sourcePosition.dst2(destPosition);
+                if (distance2 == 0)
+                    continue;
+                double force = G * sourceMass * destMass / distance2;
+                if (force <= 0)
+                    continue;
+
+                Vector2 forceV = sourcePosition.sub(destPosition).nor().scl((float) force);
+
+                // TODO: This is N^2 and we will compute every value 2x, we can
+                // do better
+
+                gravityDest.applyForceToCenter(forceV, true);
+            }
+        }
+    }
+
+    /**
+     * Called to advance the game's state by the specified number of
+     * milliseconds. iters is the number of times to call the Box2D World.step
+     * method; more iterations produce better accuracy. After updating physics,
+     * processes element collisions, calls tick() on every FieldElement, and
+     * performs scheduled actions.
+     */
+    public void tick(long msecs, int iters) {
+        float seconds = (msecs / 1000.0f);
+        float dt = seconds / iters;
+
+        for (int i = 0; i < iters; i++) {
+            // clearBallContacts();
+            world.step(dt, 10, 10);
+            // processBallContacts();
+        }
+
+        gameTime += msecs;
+        // processElementTicks();
+
+        applyBodyGravity(world);
+
+        for (Ship s : ships) {
+            s.update(seconds);
+        }
+
+        for (FieldUpdateCallback callback : updates) {
+            callback.updateCallback(seconds);
+        }
+    }
+
+    public void render(ShapeRenderer renderer, RenderLayer layer) {
+        // TODO: Until we know who we are rendering, just render the first as
+        // local
+        for (Ship s : ships) {
+            s.render(renderer, ships.get(0) == s, layer);
+        }
+    }
 }

@@ -5,26 +5,26 @@ import com.badlogic.gdx.math.Rectangle;
 import com.mygdx.game.RenderLayer;
 
 public interface Component {
-	public enum ComponentType {
-		Weapon, Engine, EngineControl, Sensor, Fuel, FuelControl,
-	}
+    public enum ComponentType {
+        Weapon, Engine, EngineControl, Sensor, Fuel, FuelControl,
+    }
 
-	public ComponentType getComponentType();
+    public ComponentType getComponentType();
 
-	public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable);
+    public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable);
 
-	public boolean requiresHud();
+    public boolean requiresHud();
 
-	public boolean requiresInput();
+    public boolean requiresInput();
 
-	// TODO: Components should take space!
-	// public float getRadius();
+    // TODO: Components should take space!
+    // public float getRadius();
 
-	// TODO: This assumes interaction model
-	public void keyPressed();
+    // TODO: This assumes interaction model
+    public void keyPressed();
 
-	public void update(float seconds);
+    public void update(float seconds);
 
-	// Render in world coordinates
-	public void render(ShapeRenderer renderer, RenderLayer layer);
+    // Render in world coordinates
+    public void render(ShapeRenderer renderer, RenderLayer layer);
 }

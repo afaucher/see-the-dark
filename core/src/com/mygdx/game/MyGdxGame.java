@@ -22,251 +22,243 @@ import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
-	private OrthographicCamera camera = null;
-	private Field field = null;
-	private ShapeRenderer renderer = null;
-	private TwoAxisControl playerOneControl = new TwoAxisControl();
-	private Ship playerOneShip = null;
-	private WindowedMean physicsMean = new WindowedMean(10);
-	private WindowedMean renderMean = new WindowedMean(10);
-	private long startTime = TimeUtils.nanoTime();
-	private Vector3 touchScreenCoordinate = null;
-	private static final boolean SHOW_AXIS = true;
-	private SpriteBatch spriteBatch = null;
-	private BitmapFont font = null;
+    private OrthographicCamera camera = null;
+    private Field field = null;
+    private ShapeRenderer renderer = null;
+    private TwoAxisControl playerOneControl = new TwoAxisControl();
+    private Ship playerOneShip = null;
+    private WindowedMean physicsMean = new WindowedMean(10);
+    private WindowedMean renderMean = new WindowedMean(10);
+    private long startTime = TimeUtils.nanoTime();
+    private Vector3 touchScreenCoordinate = null;
+    private static final boolean SHOW_AXIS = true;
+    private SpriteBatch spriteBatch = null;
+    private BitmapFont font = null;
 
-	private static final int HUD_PADDING = 5;
-	private static final int HUD_HEIGHT = 15;
+    private static final int HUD_PADDING = 5;
+    private static final int HUD_HEIGHT = 15;
 
-	private static final CharSequence[] hudText = { "1", "2", "3", "4", "5",
-			"6", "7", "8", "9", };
+    private static final CharSequence[] hudText = { "1", "2", "3", "4", "5", "6", "7", "8", "9", };
 
-	@Override
-	public void create() {
-		camera = new OrthographicCamera();
-		int x = Gdx.app.getGraphics().getWidth();
-		int y = Gdx.app.getGraphics().getHeight();
-		camera.setToOrtho(false, x, y);
+    @Override
+    public void create() {
+        camera = new OrthographicCamera();
+        int x = Gdx.app.getGraphics().getWidth();
+        int y = Gdx.app.getGraphics().getHeight();
+        camera.setToOrtho(false, x, y);
 
-		field = new Field();
-		renderer = new ShapeRenderer(500);
+        field = new Field();
+        renderer = new ShapeRenderer(500);
 
-		Gdx.input.setInputProcessor(this);
+        Gdx.input.setInputProcessor(this);
 
-		field.resetLevel(playerOneControl);
+        field.resetLevel(playerOneControl);
 
-		playerOneShip = field.getShips().get(0);
-		
-		spriteBatch = new SpriteBatch();
-		font = new BitmapFont();
-		font.setColor(ColorPalate.HUD_TEXT);
-	}
+        playerOneShip = field.getShips().get(0);
 
-	@Override
-	public boolean touchDown(int x, int y, int pointer, int button) {
-		return false;
-	}
+        spriteBatch = new SpriteBatch();
+        font = new BitmapFont();
+        font.setColor(ColorPalate.HUD_TEXT);
+    }
 
-	@Override
-	public boolean touchUp(int x, int y, int pointer, int button) {
-		return false;
-	}
+    @Override
+    public boolean touchDown(int x, int y, int pointer, int button) {
+        return false;
+    }
 
-	@Override
-	public boolean touchDragged(int x, int y, int pointer) {
-		return false;
-	}
+    @Override
+    public boolean touchUp(int x, int y, int pointer, int button) {
+        return false;
+    }
 
-	@Override
-	public void render() {
+    @Override
+    public boolean touchDragged(int x, int y, int pointer) {
+        return false;
+    }
 
-		long startPhysics = TimeUtils.nanoTime();
-		field.tick((long) (Gdx.graphics.getDeltaTime() * 3000), 4);
-		physicsMean
-				.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
+    @Override
+    public void render() {
 
-		Color background = ColorPalate.BACKGROUND;
-		Gdx.gl.glClearColor(background.r, background.g, background.b,
-				background.a);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        long startPhysics = TimeUtils.nanoTime();
+        field.tick((long) (Gdx.graphics.getDeltaTime() * 3000), 4);
+        physicsMean.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
 
-		long startRender = TimeUtils.nanoTime();
+        Color background = ColorPalate.BACKGROUND;
+        Gdx.gl.glClearColor(background.r, background.g, background.b, background.a);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		Ship ship = playerOneShip;
+        long startRender = TimeUtils.nanoTime();
 
-		// Camera
-		Vector2 cameraPosition = ship.getPosition();
+        Ship ship = playerOneShip;
 
-		camera.position.set(cameraPosition, 0);
-		camera.update();
+        // Camera
+        Vector2 cameraPosition = ship.getPosition();
 
-		renderer.identity();
-		renderer.setProjectionMatrix(camera.combined);
-		
-		aimShip();
+        camera.position.set(cameraPosition, 0);
+        camera.update();
 
-		for (RenderLayer layer : RenderLayer.values()) {
-			field.render(renderer, layer);
-		}
+        renderer.identity();
+        renderer.setProjectionMatrix(camera.combined);
 
-		// AXIS
-		if (SHOW_AXIS) {
-			renderer.begin(ShapeType.Line);
-			renderer.setColor(ColorPalate.AXIS);
-			renderer.rect(0, 0, 10, 10);
-			renderer.end();
-		}
+        aimShip();
 
-		//FPS Counter
-		spriteBatch.begin();
-		font.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(),
-				100, 100);
-		spriteBatch.end();
+        for (RenderLayer layer : RenderLayer.values()) {
+            field.render(renderer, layer);
+        }
 
-		// HUD
-		// TODO: COLOR is ugly!!!
-		Matrix4 matrix = new Matrix4();
-		int width = Gdx.graphics.getWidth();
-		int height = Gdx.graphics.getHeight();
-		matrix.setToOrtho2D(0, 0, width, height);
-		renderer.setProjectionMatrix(matrix);
+        // AXIS
+        if (SHOW_AXIS) {
+            renderer.begin(ShapeType.Line);
+            renderer.setColor(ColorPalate.AXIS);
+            renderer.rect(0, 0, 10, 10);
+            renderer.end();
+        }
 
-		int actionKey = 0;
+        // FPS Counter
+        spriteBatch.begin();
+        font.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 100, 100);
+        spriteBatch.end();
 
-		Rectangle hudSpaceAvailable = new Rectangle(HUD_PADDING, HUD_PADDING,
-				200, HUD_HEIGHT);
-		for (Component c : ship.getComponents()) {
-			if (!c.requiresHud())
-				continue;
-			Rectangle hudSpaceTaken = c.drawHud(renderer, hudSpaceAvailable);
+        // HUD
+        // TODO: COLOR is ugly!!!
+        Matrix4 matrix = new Matrix4();
+        int width = Gdx.graphics.getWidth();
+        int height = Gdx.graphics.getHeight();
+        matrix.setToOrtho2D(0, 0, width, height);
+        renderer.setProjectionMatrix(matrix);
 
-			// Draw toggle key to interact with hud element
-			if (c.requiresInput()) {
-				spriteBatch.begin();
-				font.draw(spriteBatch, hudText[actionKey], hudSpaceAvailable.x
-						+ HUD_PADDING, hudSpaceAvailable.y + HUD_PADDING);
-				spriteBatch.end();
-				actionKey++;
-			}
+        int actionKey = 0;
 
-			hudSpaceAvailable.x += HUD_PADDING + hudSpaceTaken.width;
-		}
+        Rectangle hudSpaceAvailable = new Rectangle(HUD_PADDING, HUD_PADDING, 200, HUD_HEIGHT);
+        for (Component c : ship.getComponents()) {
+            if (!c.requiresHud())
+                continue;
+            Rectangle hudSpaceTaken = c.drawHud(renderer, hudSpaceAvailable);
 
-		renderMean
-				.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
+            // Draw toggle key to interact with hud element
+            if (c.requiresInput()) {
+                spriteBatch.begin();
+                font.draw(spriteBatch, hudText[actionKey], hudSpaceAvailable.x + HUD_PADDING, hudSpaceAvailable.y
+                        + HUD_PADDING);
+                spriteBatch.end();
+                actionKey++;
+            }
 
-		if (TimeUtils.nanoTime() - startTime > 1000000000) {
-			Gdx.app.log("Profile: ",
-					"fps: " + Gdx.graphics.getFramesPerSecond()
-							+ " FPS, physics: " + physicsMean.getMean() * 1000
-							+ ", rendering: " + renderMean.getMean() * 1000
-							+ "");
-			startTime = TimeUtils.nanoTime();
-		}
-	}
+            hudSpaceAvailable.x += HUD_PADDING + hudSpaceTaken.width;
+        }
 
-	private void pressNum(int pressedNum) {
-		Ship ship = playerOneShip;
-		int componentNum = 0;
-		for (Component c : ship.getComponents()) {
-			if (c.requiresInput()) {
-				if (pressedNum == componentNum) {
-					c.keyPressed();
-					return;
-				}
+        renderMean.addValue((TimeUtils.nanoTime() - startRender) / 1000000000.0f);
 
-				componentNum++;
-			}
-		}
-	}
+        if (TimeUtils.nanoTime() - startTime > 1000000000) {
+            Gdx.app.log("Profile: ",
+                    "fps: " + Gdx.graphics.getFramesPerSecond() + " FPS, physics: " + physicsMean.getMean() * 1000
+                            + ", rendering: " + renderMean.getMean() * 1000 + "");
+            startTime = TimeUtils.nanoTime();
+        }
+    }
 
-	@Override
-	public boolean keyDown(int keycode) {
-		switch (keycode) {
-		case Input.Keys.W:
-			playerOneControl.setY(1);
-			break;
-		case Input.Keys.S:
-			playerOneControl.setY(-1);
-			break;
-		case Input.Keys.A:
-			playerOneControl.setX(-1);
-			break;
-		case Input.Keys.D:
-			playerOneControl.setX(1);
-			break;
-		case Input.Keys.NUM_1:
-		case Input.Keys.NUM_2:
-		case Input.Keys.NUM_3:
-		case Input.Keys.NUM_4:
-		case Input.Keys.NUM_5:
-		case Input.Keys.NUM_6:
-		case Input.Keys.NUM_7:
-		case Input.Keys.NUM_8:
-		case Input.Keys.NUM_9:
-			pressNum(keycode - Input.Keys.NUM_1);
-			break;
-		}
+    private void pressNum(int pressedNum) {
+        Ship ship = playerOneShip;
+        int componentNum = 0;
+        for (Component c : ship.getComponents()) {
+            if (c.requiresInput()) {
+                if (pressedNum == componentNum) {
+                    c.keyPressed();
+                    return;
+                }
 
-		return false;
-	}
+                componentNum++;
+            }
+        }
+    }
 
-	@Override
-	public boolean keyUp(int keycode) {
-		switch (keycode) {
-		case Input.Keys.W:
-		case Input.Keys.S:
-			playerOneControl.setY(0);
-			break;
-		case Input.Keys.A:
-		case Input.Keys.D:
-			playerOneControl.setX(0);
-			break;
-		case Input.Keys.SPACE:
-		    playerOneShip.fire();
-		    break;
-		}
+    @Override
+    public boolean keyDown(int keycode) {
+        switch (keycode) {
+        case Input.Keys.W:
+            playerOneControl.setY(1);
+            break;
+        case Input.Keys.S:
+            playerOneControl.setY(-1);
+            break;
+        case Input.Keys.A:
+            playerOneControl.setX(-1);
+            break;
+        case Input.Keys.D:
+            playerOneControl.setX(1);
+            break;
+        case Input.Keys.NUM_1:
+        case Input.Keys.NUM_2:
+        case Input.Keys.NUM_3:
+        case Input.Keys.NUM_4:
+        case Input.Keys.NUM_5:
+        case Input.Keys.NUM_6:
+        case Input.Keys.NUM_7:
+        case Input.Keys.NUM_8:
+        case Input.Keys.NUM_9:
+            pressNum(keycode - Input.Keys.NUM_1);
+            break;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public boolean keyTyped(char character) {
-		return false;
-	}
+    @Override
+    public boolean keyUp(int keycode) {
+        switch (keycode) {
+        case Input.Keys.W:
+        case Input.Keys.S:
+            playerOneControl.setY(0);
+            break;
+        case Input.Keys.A:
+        case Input.Keys.D:
+            playerOneControl.setX(0);
+            break;
+        case Input.Keys.SPACE:
+            playerOneShip.fire();
+            break;
+        }
 
-	private void aimShip() {
-		if (touchScreenCoordinate == null)
-			return;
+        return false;
+    }
 
-		Vector3 target3 = camera.unproject(touchScreenCoordinate.cpy());
-		Vector2 target2 = new Vector2(target3.x, target3.y);
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
 
-		// Gets reapplied even when the mouse doesn't move
-		playerOneShip.aimWeapons(target2);
-	}
+    private void aimShip() {
+        if (touchScreenCoordinate == null)
+            return;
 
-	@Override
-	public boolean mouseMoved(int screenX, int screenY) {
+        Vector3 target3 = camera.unproject(touchScreenCoordinate.cpy());
+        Vector2 target2 = new Vector2(target3.x, target3.y);
 
-		this.touchScreenCoordinate = new Vector3(screenX, screenY, 0);
+        // Gets reapplied even when the mouse doesn't move
+        playerOneShip.aimWeapons(target2);
+    }
 
-		//Vector2 cameraPosition = playerOneShip.getPosition();
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
 
-		//camera.position.set(cameraPosition, 0);
-		//camera.update();
+        this.touchScreenCoordinate = new Vector3(screenX, screenY, 0);
 
-		//aimShip();
+        // Vector2 cameraPosition = playerOneShip.getPosition();
 
-		return true;
-	}
+        // camera.position.set(cameraPosition, 0);
+        // camera.update();
 
-	@Override
-	public boolean scrolled(int amount) {
-		
-		float zoom_adjustment = (10 + amount) / 10.0f;
-		camera.zoom = camera.zoom * zoom_adjustment; 
-		
-		return true;
-	}
+        // aimShip();
+
+        return true;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+
+        float zoom_adjustment = (10 + amount) / 10.0f;
+        camera.zoom = camera.zoom * zoom_adjustment;
+
+        return true;
+    }
 }

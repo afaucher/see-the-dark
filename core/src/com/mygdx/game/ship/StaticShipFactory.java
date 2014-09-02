@@ -14,91 +14,84 @@ import com.mygdx.game.ColorPalate;
 
 public class StaticShipFactory implements ShipFactory {
 
-	private static final float BODY_RADIUS = 10.0f;
+    private static final float BODY_RADIUS = 10.0f;
 
-	private static final float HEAT_LIMIT = 1000;
-	private static final float DAMAGE_HEAT_THRESHOLD = HEAT_LIMIT * 9 / 10;
-	// TODO: Make part of the specific component configuration
-	private static final float HEAT_DAMAGE_PER_SECOND = 0.15f;
-	private static final float HEAT_DISAPATED_PER_SECOND = HEAT_LIMIT / 2;
+    private static final float HEAT_LIMIT = 1000;
+    private static final float DAMAGE_HEAT_THRESHOLD = HEAT_LIMIT * 9 / 10;
+    // TODO: Make part of the specific component configuration
+    private static final float HEAT_DAMAGE_PER_SECOND = 0.15f;
+    private static final float HEAT_DISAPATED_PER_SECOND = HEAT_LIMIT / 2;
 
-	private class ShipSectionInstance extends AbstractBodyData implements
-			ShipSection {
+    private class ShipSectionInstance extends AbstractBodyData implements ShipSection {
 
+        private float integrity = 1;
+        private float heatLimit = 0;
+        private Fixture fixture = null;
 
+        public ShipSectionInstance(Vector2 position, float radius, float heatLimit, Body body) {
+            super(true);
 
-		private float integrity = 1;
-		private float heatLimit = 0;
-		private Fixture fixture = null;
+            this.heatLimit = heatLimit;
 
-		public ShipSectionInstance(Vector2 position, float radius,
-				float heatLimit, Body body) {
-			super(true);
+            CircleShape sd = new CircleShape();
+            sd.setRadius(radius);
+            sd.setPosition(position);
 
-			this.heatLimit = heatLimit;
+            FixtureDef fdef = new FixtureDef();
+            fdef.shape = sd;
+            fdef.density = 1.0f;
+            fdef.friction = 0.5f;
+            fdef.restitution = 0.6f;
 
-			CircleShape sd = new CircleShape();
-			sd.setRadius(radius);
-			sd.setPosition(position);
+            fixture = body.createFixture(fdef);
+            fixture.setUserData(this);
+        }
 
-			FixtureDef fdef = new FixtureDef();
-			fdef.shape = sd;
-			fdef.density = 1.0f;
-			fdef.friction = 0.5f;
-			fdef.restitution = 0.6f;
+        @Override
+        public Color getMaterialColor() {
+            return ColorPalate.SHIP;
+        }
 
-			fixture = body.createFixture(fdef);
-			fixture.setUserData(this);
-		}
+        @Override
+        public Fixture getFixture() {
+            return fixture;
+        }
 
-		@Override
-		public Color getMaterialColor() {
-			return ColorPalate.SHIP;
-		}
+        @Override
+        public float getHullIntegrity() {
+            return integrity;
+        }
 
-		@Override
-		public Fixture getFixture() {
-			return fixture;
-		}
+        @Override
+        public float getHeatLimit() {
+            return heatLimit;
+        }
 
-		@Override
-		public float getHullIntegrity() {
-			return integrity;
-		}
+        @Override
+        public void update(float seconds) {
+            if (getTemperature() > DAMAGE_HEAT_THRESHOLD) {
+                integrity = Math.max(0, integrity - (HEAT_DAMAGE_PER_SECOND * seconds));
+            }
+            disapateHeat(HEAT_DISAPATED_PER_SECOND * seconds);
+        }
 
-		@Override
-		public float getHeatLimit() {
-			return heatLimit;
-		}
+    }
 
-		@Override
-		public void update(float seconds) {
-			if (getTemperature() > DAMAGE_HEAT_THRESHOLD) {
-				integrity = Math.max(0, integrity
-						- (HEAT_DAMAGE_PER_SECOND * seconds));
-			}
-			disapateHeat(HEAT_DISAPATED_PER_SECOND * seconds);
-		}
+    @Override
+    public List<ShipSection> buildShip(Body body) {
 
-	}
+        Vector2 headPosition = new Vector2(0, 0);
+        Vector2 tailPosition = new Vector2(-2 * BODY_RADIUS, 0);
 
-	@Override
-	public List<ShipSection> buildShip(Body body) {
+        ShipSectionInstance head = new ShipSectionInstance(headPosition, BODY_RADIUS, HEAT_LIMIT, body);
+        ShipSectionInstance tail = new ShipSectionInstance(tailPosition, BODY_RADIUS, HEAT_LIMIT, body);
 
-		Vector2 headPosition = new Vector2(0, 0);
-		Vector2 tailPosition = new Vector2(-2 * BODY_RADIUS, 0);
+        List<ShipSection> sections = new ArrayList<ShipSection>();
 
-		ShipSectionInstance head = new ShipSectionInstance(headPosition,
-				BODY_RADIUS, HEAT_LIMIT, body);
-		ShipSectionInstance tail = new ShipSectionInstance(tailPosition,
-				BODY_RADIUS, HEAT_LIMIT, body);
+        sections.add(head);
+        sections.add(tail);
 
-		List<ShipSection> sections = new ArrayList<ShipSection>();
-
-		sections.add(head);
-		sections.add(tail);
-
-		return sections;
-	}
+        return sections;
+    }
 
 }
