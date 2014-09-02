@@ -15,7 +15,7 @@ public class FuelControlComponent extends AbstractComponent implements
 
 	@Override
 	public ComponentType getComponentType() {
-		return ComponentType.Fuel;
+		return ComponentType.FuelControl;
 	}
 
 	@Override
@@ -63,13 +63,13 @@ public class FuelControlComponent extends AbstractComponent implements
 		List<Component> components = ship.getComponents();
 
 		for (Component c : components) {
-			if (c == this)
+			if (c == this) {
 				continue;
-			if (!ComponentType.Fuel.equals(c.getComponentType()))
+			}
+			if (!ComponentType.Fuel.equals(c.getComponentType())) {
 				continue;
+			}
 			FuelControl fuelControl = (FuelControl) c;
-			if (fuelControl == null)
-				continue;
 
 			fuelControls.add(fuelControl);
 		}

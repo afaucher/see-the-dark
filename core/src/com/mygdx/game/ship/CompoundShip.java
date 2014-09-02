@@ -2,28 +2,13 @@ package com.mygdx.game.ship;
 
 import java.util.List;
 
+//This is just a placeholder that loops over all sections for summaries
 public class CompoundShip {
 
 	private List<ShipSection> shipSections = null;
 
 	public CompoundShip(List<ShipSection> shipSections) {
 		this.shipSections = shipSections;
-	}
-
-	public float getTorqueContribution() {
-		float torque = 0;
-		for (ShipSection s : shipSections) {
-			torque += s.getTorqueContribution();
-		}
-		return torque;
-	}
-
-	public float getThrustContribution() {
-		float thrust = 0;
-		for (ShipSection s : shipSections) {
-			thrust += s.getThrustContribution();
-		}
-		return thrust;
 	}
 
 	public float getHullIntegrity() {

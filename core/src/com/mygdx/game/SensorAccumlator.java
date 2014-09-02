@@ -15,8 +15,8 @@ public class SensorAccumlator implements RayCastCallback {
 	private List<SensorHit> immutableHits = Collections.unmodifiableList(hits);
 	private List<Emission> emissions = new ArrayList<Emission>();
 
-	// private List<Emission> immutableEmissions =
-	// Collections.unmodifiableList(emissions);
+	private List<Emission> immutableEmissions = Collections
+			.unmodifiableList(emissions);
 
 	public void resetActiveSensors() {
 		hits.clear();
@@ -31,8 +31,9 @@ public class SensorAccumlator implements RayCastCallback {
 		return immutableHits;
 	}
 
+	// Returns immutable list
 	public List<Emission> getReceivedEmissions() {
-		return emissions;
+		return immutableEmissions;
 	}
 
 	@Override

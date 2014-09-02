@@ -15,10 +15,5 @@ public interface ShipSection extends BodyData {
 	// Temp limit before immediate destruction
 	public float getHeatLimit();
 
-	// Engine
-	public float getTorqueContribution();
-
-	public float getThrustContribution();
-
 	public void update(float seconds);
 }

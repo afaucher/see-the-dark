@@ -41,6 +41,7 @@ public class EmissionSource implements RayCastCallback {
 		}
 		case LINEAR: {
 			effectivePower = emissionPower * fraction;
+			break;
 		}
 		case NONE: {
 			effectivePower = emissionPower;

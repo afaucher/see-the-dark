@@ -7,6 +7,7 @@ public abstract class AbstractBodyData implements BodyData {
 	private List<Emission> receivedEmissions = new ArrayList<Emission>();
 	private boolean accumlateEmissions = false;
 	private float temperature = 0;
+	private static float EMISSION_UNITS_PER_HEAT = 100.0f;
 
 	public AbstractBodyData(boolean accumlateEmissions) {
 		this.accumlateEmissions = accumlateEmissions;
@@ -17,7 +18,9 @@ public abstract class AbstractBodyData implements BodyData {
 		// TODO: Take duration into account, push into emission?
 		if (!accumlateEmissions)
 			return;
+		this.accumlateHeat(emission.power/EMISSION_UNITS_PER_HEAT);
 		receivedEmissions.add(emission);
+		//TODO: Cause actual damage
 	}
 
 	@Override

@@ -7,9 +7,10 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -23,15 +24,22 @@ import com.mygdx.game.ship.components.Component;
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 	private OrthographicCamera camera = null;
 	private Field field = null;
-	ShapeRenderer renderer = null;
-	TwoAxisControl playerOneControl = new TwoAxisControl();
-	Ship playerOneShip = null;
-	WindowedMean physicsMean = new WindowedMean(10);
-	WindowedMean renderMean = new WindowedMean(10);
-	long startTime = TimeUtils.nanoTime();
+	private ShapeRenderer renderer = null;
+	private TwoAxisControl playerOneControl = new TwoAxisControl();
+	private Ship playerOneShip = null;
+	private WindowedMean physicsMean = new WindowedMean(10);
+	private WindowedMean renderMean = new WindowedMean(10);
+	private long startTime = TimeUtils.nanoTime();
+	private Vector3 touchScreenCoordinate = null;
+	private static final boolean SHOW_AXIS = true;
+	private SpriteBatch spriteBatch = null;
+	private BitmapFont font = null;
 
 	private static final int HUD_PADDING = 5;
 	private static final int HUD_HEIGHT = 15;
+
+	private static final CharSequence[] hudText = { "1", "2", "3", "4", "5",
+			"6", "7", "8", "9", };
 
 	@Override
 	public void create() {
@@ -48,6 +56,10 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		field.resetLevel(playerOneControl);
 
 		playerOneShip = field.getShips().get(0);
+		
+		spriteBatch = new SpriteBatch();
+		font = new BitmapFont();
+		font.setColor(ColorPalate.HUD_TEXT);
 	}
 
 	@Override
@@ -84,15 +96,32 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
 		// Camera
 		Vector2 cameraPosition = ship.getPosition();
+
 		camera.position.set(cameraPosition, 0);
 		camera.update();
+
 		renderer.identity();
 		renderer.setProjectionMatrix(camera.combined);
+		
+		aimShip();
 
 		for (RenderLayer layer : RenderLayer.values()) {
-
 			field.render(renderer, layer);
 		}
+
+		// AXIS
+		if (SHOW_AXIS) {
+			renderer.begin(ShapeType.Line);
+			renderer.setColor(ColorPalate.AXIS);
+			renderer.rect(0, 0, 10, 10);
+			renderer.end();
+		}
+
+		//FPS Counter
+		spriteBatch.begin();
+		font.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(),
+				100, 100);
+		spriteBatch.end();
 
 		// HUD
 		// TODO: COLOR is ugly!!!
@@ -102,12 +131,24 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		matrix.setToOrtho2D(0, 0, width, height);
 		renderer.setProjectionMatrix(matrix);
 
+		int actionKey = 0;
+
 		Rectangle hudSpaceAvailable = new Rectangle(HUD_PADDING, HUD_PADDING,
 				200, HUD_HEIGHT);
 		for (Component c : ship.getComponents()) {
 			if (!c.requiresHud())
 				continue;
 			Rectangle hudSpaceTaken = c.drawHud(renderer, hudSpaceAvailable);
+
+			// Draw toggle key to interact with hud element
+			if (c.requiresInput()) {
+				spriteBatch.begin();
+				font.draw(spriteBatch, hudText[actionKey], hudSpaceAvailable.x
+						+ HUD_PADDING, hudSpaceAvailable.y + HUD_PADDING);
+				spriteBatch.end();
+				actionKey++;
+			}
+
 			hudSpaceAvailable.x += HUD_PADDING + hudSpaceTaken.width;
 		}
 
@@ -155,10 +196,15 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 			playerOneControl.setX(1);
 			break;
 		case Input.Keys.NUM_1:
-			pressNum(0);
-			break;
 		case Input.Keys.NUM_2:
-			pressNum(1);
+		case Input.Keys.NUM_3:
+		case Input.Keys.NUM_4:
+		case Input.Keys.NUM_5:
+		case Input.Keys.NUM_6:
+		case Input.Keys.NUM_7:
+		case Input.Keys.NUM_8:
+		case Input.Keys.NUM_9:
+			pressNum(keycode - Input.Keys.NUM_1);
 			break;
 		}
 
@@ -176,6 +222,9 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		case Input.Keys.D:
 			playerOneControl.setX(0);
 			break;
+		case Input.Keys.SPACE:
+		    playerOneShip.fire();
+		    break;
 		}
 
 		return false;
@@ -186,20 +235,38 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 		return false;
 	}
 
+	private void aimShip() {
+		if (touchScreenCoordinate == null)
+			return;
+
+		Vector3 target3 = camera.unproject(touchScreenCoordinate.cpy());
+		Vector2 target2 = new Vector2(target3.x, target3.y);
+
+		// Gets reapplied even when the mouse doesn't move
+		playerOneShip.aimWeapons(target2);
+	}
+
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 
-		Vector3 touchWorldCoordinate = new Vector3(screenX, screenY, 0);
-		Vector3 target3 = camera.unproject(touchWorldCoordinate);
-		Vector2 target2 = new Vector2(target3.x, target3.y);
+		this.touchScreenCoordinate = new Vector3(screenX, screenY, 0);
 
-		playerOneShip.aimWeapons(target2);
+		//Vector2 cameraPosition = playerOneShip.getPosition();
+
+		//camera.position.set(cameraPosition, 0);
+		//camera.update();
+
+		//aimShip();
 
 		return true;
 	}
 
 	@Override
 	public boolean scrolled(int amount) {
-		return false;
+		
+		float zoom_adjustment = (10 + amount) / 10.0f;
+		camera.zoom = camera.zoom * zoom_adjustment; 
+		
+		return true;
 	}
 }

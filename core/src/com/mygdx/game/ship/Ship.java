@@ -13,7 +13,6 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
-import com.mygdx.game.BodyData;
 import com.mygdx.game.ColorPalate;
 import com.mygdx.game.Emission;
 import com.mygdx.game.RenderLayer;
@@ -21,10 +20,14 @@ import com.mygdx.game.SensorAccumlator;
 import com.mygdx.game.SensorHit;
 import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.ship.components.Component;
+import com.mygdx.game.ship.components.Component.ComponentType;
 import com.mygdx.game.ship.components.EngineComponent;
+import com.mygdx.game.ship.components.EngineContribution;
+import com.mygdx.game.ship.components.EngineControlComponent;
 import com.mygdx.game.ship.components.FuelComponent;
 import com.mygdx.game.ship.components.FuelControlComponent;
 import com.mygdx.game.ship.components.SensorComponent;
+import com.mygdx.game.ship.components.WeaponComponent;
 
 public class Ship {
 
@@ -38,20 +41,27 @@ public class Ship {
 			.unmodifiableList(components);
 
 	private FuelControlComponent fuelControl = null;
+	private EngineControlComponent engineControl = null;
 
 	private CompoundShip ship = null;
-	private Vector2 weaponTarget = null;
 
 	private static final float SCAN_RADIUS = 300.0f;
 	private static final float GLOBAL_SCAN_RADIUS = SCAN_RADIUS / 2;
 	private static final float SCAN_HALF_ARC_RAD = 1.0f;
 	private static final float SCAN_ARC_RAD = SCAN_HALF_ARC_RAD * 2.0f;
 	private static final int SCAN_SLICES = 40;
-	private static final float FUEL = 100000000;
+	private static final float FUEL = 1000000000;
 
 	private static final float ACTIVE_SENSOR_HIT_RADIUS = 5.0f;
 	private static final float PASSIVE_SENSOR_MAXIUM_POWER = 100.0f;
 	private static final float PASSIVE_SENSOR_MIN_RADIUS = 3.0f;
+
+	private static final float TORQUE_JOULE = 2000000.0f;
+	private static final float THRUST_JOULE = 5000000.0f;
+
+	private static final float WEAPON_TARGET_RANGE = 250.0f;
+	private static final float WEAPON_TARGET_START_ARC = MathUtils.PI / 6;
+	private static final float WEAPON_TARGET_ARC = MathUtils.PI / 3;
 
 	private static final ShipFactory factory = new StaticShipFactory();
 
@@ -95,33 +105,79 @@ public class Ship {
 
 		components.add(fuel);
 
-		EngineComponent engine = new EngineComponent();
+		EngineComponent engine = new EngineComponent(TORQUE_JOULE, THRUST_JOULE);
 		engine.mountToSection(this, secondSection);
 
 		components.add(engine);
+
+		engineControl = new EngineControlComponent();
+		engineControl.mountToSection(this, null);
+
+		components.add(engineControl);
+
+		WeaponComponent weaponOne = new WeaponComponent(WEAPON_TARGET_RANGE,
+				WEAPON_TARGET_START_ARC, WEAPON_TARGET_ARC);
+		weaponOne.mountToSection(this, firstSection);
+
+		components.add(weaponOne);
+
+		WeaponComponent weaponTwo = new WeaponComponent(WEAPON_TARGET_RANGE,
+				MathUtils.PI2 - WEAPON_TARGET_START_ARC - WEAPON_TARGET_ARC,
+				WEAPON_TARGET_ARC);
+		weaponTwo.mountToSection(this, firstSection);
+
+		components.add(weaponTwo);
 	}
 
-	public void aimWeapons(Vector2 target) {
-		weaponTarget = target.cpy();
+	public void aimWeapons(final Vector2 target) {
+
+		for (Component component : components) {
+			if (!ComponentType.Weapon.equals(component.getComponentType())) {
+				continue;
+			}
+			WeaponComponent w = (WeaponComponent) component;
+
+			w.aimWeapon(target);
+		}
+	}
+	
+	public void fire() {
+	    for (Component component : components) {
+            if (!ComponentType.Weapon.equals(component.getComponentType())) {
+                continue;
+            }
+            WeaponComponent w = (WeaponComponent) component;
+
+            w.fireWeapon();
+        }
 	}
 
-	private void updateMovements() {
+	private void updateMovements(float seconds) {
 		// TODO: Always wakes player
-		float torque = -controls.getX() * ship.getTorqueContribution();
-		float force = controls.getY() * ship.getThrustContribution();
+		EngineContribution potentialContribution = engineControl
+				.getEngineContribution();
 
-		float fuelToBurn = Math.abs(torque) + Math.abs(force);
+		float torqueNewtons = -controls.getX()
+				* potentialContribution.torqueJoule * seconds;
+		float thrustNewtons = controls.getY()
+				* potentialContribution.thrustJoule * seconds;
+
+		float fuelToBurn = Math.abs(torqueNewtons) + Math.abs(thrustNewtons);
 		fuelToBurn = fuelControl.burnFuel(fuelToBurn);
 		if (fuelToBurn > 0) {
 			// Out of fuel
 			return;
 		}
 
-		float angle = getRotation();
-		float vX = (float) Math.cos(angle) * force;
-		float vY = (float) Math.sin(angle) * force;
+		engineControl.fireEngine(Math.abs(controls.getX()),
+				Math.abs(controls.getY()));
 
-		body.applyAngularImpulse(torque, true);
+		float angle = getRotation();
+		float vX = (float) Math.cos(angle) * thrustNewtons;
+		float vY = (float) Math.sin(angle) * thrustNewtons;
+
+		// body.applyAngularImpulse(torque, true);
+		body.applyTorque(torqueNewtons, true);
 		body.applyForceToCenter(vX, vY, true);
 	}
 
@@ -134,7 +190,7 @@ public class Ship {
 	}
 
 	public void update(float seconds) {
-		updateMovements();
+		updateMovements(seconds);
 
 		ship.update(seconds);
 
@@ -155,7 +211,7 @@ public class Ship {
 		if (!full) {
 			// TODO: If same team, render the sensors
 			// TODO: Better yet, do each layer in passes
-			return;
+			//return;
 		}
 
 		float x = body.getPosition().x;

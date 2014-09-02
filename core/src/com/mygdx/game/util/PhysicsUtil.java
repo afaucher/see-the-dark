@@ -13,6 +13,18 @@ public class PhysicsUtil {
 		Transform transform = body.getTransform();
 		CircleShape shape = (CircleShape) fixture.getShape();
 		vec.set(shape.getPosition());
-		return transform.mul(vec);
+		//TODO: Not clear if we need to cpy
+		return transform.mul(vec).cpy();
+	}
+	
+	public static Transform getWorldFixturePositionTransform(Fixture fixture) {
+		Vector2 vec = new Vector2();
+		Body body = fixture.getBody();
+		Transform transform = body.getTransform();
+		CircleShape shape = (CircleShape) fixture.getShape();
+		vec.set(shape.getPosition());
+		//TODO: Not clear if we need to cpy
+		transform.setPosition(transform.mul(vec).cpy());
+		return transform;
 	}
 }
