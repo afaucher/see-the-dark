@@ -15,10 +15,11 @@ public abstract class AbstractBodyData implements BodyData {
 
     @Override
     public void receiveEmission(Emission emission) {
-        // TODO: Take duration into account, push into emission?
-        if (!accumlateEmissions)
-            return;
+        // TODO: Take duration into account?, push into emission?
         this.accumlateHeat(emission.power / EMISSION_UNITS_PER_HEAT);
+        if (!accumlateEmissions) {
+            return;
+        }
         receivedEmissions.add(emission);
         // TODO: Cause actual damage
     }
