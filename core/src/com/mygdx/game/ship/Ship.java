@@ -63,6 +63,11 @@ public class Ship {
     private static final float WEAPON_TARGET_ARC = MathUtils.PI / 3;
 
     private static final ShipFactory factory = new StaticShipFactory();
+    
+    //Only for the AI impl
+    public Body getBody() {
+        return body;
+    }
 
     public Ship(World world, TwoAxisControl controls, Vector2 spwan) {
         this.controls = controls;

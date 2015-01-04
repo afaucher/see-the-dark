@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.badlogic.gdx.ai.steer.behaviors.Wander;
+import com.badlogic.gdx.ai.steer.limiters.LinearAccelerationLimiter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
@@ -12,7 +15,10 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.FieldUpdateCallback;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
+import com.mygdx.game.ai.ShipSteeringEntity;
 import com.mygdx.game.ship.Ship;
+import com.mygdx.game.ship.components.Component;
+import com.mygdx.game.ship.components.Component.ComponentType;
 
 public class Field {
     private World world;
@@ -28,6 +34,40 @@ public class Field {
     public static final double G = 1.0f;
 
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
+    
+    ShipSteeringEntity sse;
+    
+    private void addAIShip() {
+        Vector2 spwanTwo = new Vector2(100, 100);
+        
+        TwoAxisControl aiControl = new TwoAxisControl();
+        
+        Ship aiShip = new Ship(world, aiControl, spwanTwo);
+        for (Component c : aiShip.getComponents()) {
+            if (ComponentType.Engine.equals(c.getComponentType())) {
+                //Fixme: This is super hacky to turn on engines
+                c.keyPressed();
+            }
+        }
+        
+        ships.add(aiShip);
+        
+        sse = new ShipSteeringEntity(aiShip, aiControl); 
+        
+        //FIXME: THis is completely bogus
+        Wander<Vector2> wanderSB = new Wander<Vector2>(sse) //
+                // Don't use Face internally because independent facing is off
+                .setFaceEnabled(false) //
+                // We don't need a limiter supporting angular components because Face is not used
+                // No need to call setAlignTolerance, setDecelerationRadius and setTimeToTarget for the same reason
+                .setLimiter(new LinearAccelerationLimiter(1)) //
+                .setWanderOffset(60) //
+                .setWanderOrientation(10) //
+                .setWanderRadius(40) //
+                .setWanderRate(MathUtils.PI / 5);
+        
+        sse.setSteeringBehavior(wanderSB);
+    }
 
     public void resetLevel(TwoAxisControl playerOne) {
         Vector2 gravity = new Vector2(0.0f, 0.0f);
@@ -37,13 +77,19 @@ public class Field {
         gameTime = 0;
 
         Vector2 spwanOne = new Vector2(0, 0);
-        Vector2 spwanTwo = new Vector2(100, 100);
+        
 
         ships = new ArrayList<Ship>();
         immutableShips = Collections.unmodifiableList(ships);
 
         ships.add(new Ship(world, playerOne, spwanOne));
-        ships.add(new Ship(world, new TwoAxisControl(), spwanTwo));
+        
+        
+        addAIShip();
+        
+
+        
+
 
         FieldLayout fieldLayout = new RandomField();
         updates = fieldLayout.populateField(world);
@@ -121,6 +167,10 @@ public class Field {
         for (Ship s : ships) {
             s.update(seconds);
         }
+        
+        //Run AI
+        //FIXME: This shouldn't need to be special
+        sse.update(seconds);
 
         for (FieldUpdateCallback callback : updates) {
             callback.updateCallback(seconds);
@@ -131,7 +181,8 @@ public class Field {
         // TODO: Until we know who we are rendering, just render the first as
         // local
         for (Ship s : ships) {
-            s.render(renderer, ships.get(0) == s, layer);
+            boolean drawFull = true; //ships.get(0) == s
+            s.render(renderer, drawFull, layer);
         }
     }
 }
