@@ -6,7 +6,7 @@ import com.mygdx.game.RenderLayer;
 
 public interface Component {
     public enum ComponentType {
-        Weapon, Engine, EngineControl, Sensor, Fuel, FuelControl,
+        Weapon, Engine, EngineControl, Sensor, Fuel, FuelControl, Beacon,
     }
 
     public ComponentType getComponentType();

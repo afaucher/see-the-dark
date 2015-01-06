@@ -19,6 +19,7 @@ import com.mygdx.game.ai.ShipSteeringEntity;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
 import com.mygdx.game.ship.components.Component.ComponentType;
+import com.mygdx.game.util.DebbugingParameters;
 
 public class Field {
     private World world;
@@ -42,7 +43,7 @@ public class Field {
         
         TwoAxisControl aiControl = new TwoAxisControl();
         
-        Ship aiShip = new Ship(world, aiControl, spwanTwo);
+        Ship aiShip = new Ship(this, aiControl, spwanTwo);
         for (Component c : aiShip.getComponents()) {
             if (ComponentType.Engine.equals(c.getComponentType())) {
                 //Fixme: This is super hacky to turn on engines
@@ -82,7 +83,7 @@ public class Field {
         ships = new ArrayList<Ship>();
         immutableShips = Collections.unmodifiableList(ships);
 
-        ships.add(new Ship(world, playerOne, spwanOne));
+        ships.add(new Ship(this, playerOne, spwanOne));
         
         
         addAIShip();
@@ -97,6 +98,10 @@ public class Field {
 
     public List<Ship> getShips() {
         return immutableShips;
+    }
+    
+    public World getWorld() {
+        return world;
     }
 
     private void applyBodyGravity(World w) {
@@ -181,7 +186,7 @@ public class Field {
         // TODO: Until we know who we are rendering, just render the first as
         // local
         for (Ship s : ships) {
-            boolean drawFull = true; //ships.get(0) == s
+            boolean drawFull = (ships.get(0) == s) || DebbugingParameters.DRAW_ALL_SHIPS;
             s.render(renderer, drawFull, layer);
         }
     }

@@ -23,6 +23,9 @@ import com.badlogic.gdx.utils.TimeUtils;
 import com.mygdx.game.field.Field;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
+import com.mygdx.game.state.GameState;
+import com.mygdx.game.state.PausableGameState;
+import com.mygdx.game.util.DebbugingParameters;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     private OrthographicCamera camera = null;
@@ -34,9 +37,10 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     private WindowedMean renderMean = new WindowedMean(10);
     private long startTime = TimeUtils.nanoTime();
     private Vector3 touchScreenCoordinate = null;
-    private static final boolean SHOW_AXIS = true;
     private SpriteBatch spriteBatch = null;
     private BitmapFont font = null;
+    
+    private GameState gameState;
 
     private static final int HUD_PADDING = 5;
     private static final int HUD_HEIGHT = 15;
@@ -45,6 +49,8 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public void create() {
+        gameState = new PausableGameState();
+        
         camera = new OrthographicCamera();
         int x = Gdx.app.getGraphics().getWidth();
         int y = Gdx.app.getGraphics().getHeight();
@@ -83,8 +89,16 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     public void render() {
 
         long startPhysics = TimeUtils.nanoTime();
-        field.tick((long) (Gdx.graphics.getDeltaTime() * 3000), 4);
-        physicsMean.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
+        
+        float tickTimeSeconds = Gdx.graphics.getDeltaTime();
+        long tickTimeMiliseconds = (long) (tickTimeSeconds * 1000);
+        gameState.tick(tickTimeSeconds);
+        
+        if (gameState.isSimulationRunning()) {
+            //TODO: Why o why is there a 3 here?
+            field.tick( tickTimeMiliseconds * 3, 4);
+            physicsMean.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
+        }
 
         Color background = ColorPalate.BACKGROUND;
         Gdx.gl.glClearColor(background.r, background.g, background.b, background.a);
@@ -103,6 +117,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         renderer.identity();
         renderer.setProjectionMatrix(camera.combined);
 
+        //TODO: Decouple aiming and rendering
         aimShip();
 
         for (RenderLayer layer : RenderLayer.values()) {
@@ -110,7 +125,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         }
 
         // AXIS
-        if (SHOW_AXIS) {
+        if (DebbugingParameters.DRAW_ORIGIN) {
             renderer.begin(ShapeType.Line);
             renderer.setColor(ColorPalate.AXIS);
             renderer.rect(0, 0, 10, 10);
@@ -177,6 +192,18 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        
+        switch (keycode) {
+        case Input.Keys.P:
+            gameState.togglePause();
+            break;
+        }
+        
+        if (!gameState.isSimulationRunning()) {
+            //Remainder of keys interact with the simulation
+            return false;
+        }
+        
         switch (keycode) {
         case Input.Keys.W:
             playerOneControl.setY(1);
@@ -201,6 +228,10 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         case Input.Keys.NUM_9:
             pressNum(keycode - Input.Keys.NUM_1);
             break;
+        case Input.Keys.F1:
+            DebbugingParameters.DRAW_ALL_SHIPS = !DebbugingParameters.DRAW_ALL_SHIPS;
+            DebbugingParameters.DRAW_ORIGIN = !DebbugingParameters.DRAW_ORIGIN; 
+            break;
         }
 
         return false;
@@ -208,6 +239,12 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean keyUp(int keycode) {
+        
+        if (!gameState.isSimulationRunning()) {
+            //Remainder of keys interact with the simulation
+            return false;
+        }
+        
         switch (keycode) {
         case Input.Keys.W:
         case Input.Keys.S:
