@@ -34,12 +34,13 @@ public class BeaconComponent extends AbstractComponent {
     public Rectangle drawHud(ShapeRenderer renderer, Rectangle destAvailable) {
         float height = destAvailable.getHeight();
 
-        renderer.begin(ShapeType.Line);
+        renderer.begin(ShapeType.Filled);
         renderer.setColor(enabled ? ColorPalate.ACTIVE_HUD : ColorPalate.INACTIVE_HUD);
-        //TODO: Replace
-        renderer.line(destAvailable.x, destAvailable.y, destAvailable.x + height, destAvailable.y + height);
-        renderer.line(destAvailable.x, destAvailable.y, destAvailable.x + height / 2, destAvailable.y + height);
-        renderer.line(destAvailable.x, destAvailable.y, destAvailable.x + height, destAvailable.y + height / 2);
+        
+        float innerRadius = 4f;
+        float outerRadius = height - innerRadius;
+        renderer.circle(destAvailable.x + innerRadius, destAvailable.y + innerRadius, innerRadius);
+        renderer.arc(destAvailable.x + innerRadius, destAvailable.y + innerRadius, outerRadius, 30, 60);
 
         renderer.end();
 
