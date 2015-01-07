@@ -9,12 +9,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.EmissionSource;
 import com.mygdx.game.EmissionSource.EmissionPowerDropoff;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.SensorAccumlator;
 import com.mygdx.game.ship.Ship;
+import com.mygdx.game.style.ColorPalate;
 import com.mygdx.game.util.PhysicsUtil;
 
 public class SensorComponent extends AbstractComponent {

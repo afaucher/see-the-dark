@@ -6,9 +6,9 @@ import java.util.List;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.ship.Ship;
+import com.mygdx.game.style.ColorPalate;
 
 public class FuelControlComponent extends AbstractComponent implements FuelControl {
 

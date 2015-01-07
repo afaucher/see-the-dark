@@ -25,6 +25,8 @@ import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
 import com.mygdx.game.state.GameState;
 import com.mygdx.game.state.PausableGameState;
+import com.mygdx.game.style.ColorPalate;
+import com.mygdx.game.style.FontPalate;
 import com.mygdx.game.util.DebbugingParameters;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
@@ -38,8 +40,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     private long startTime = TimeUtils.nanoTime();
     private Vector3 touchScreenCoordinate = null;
     private SpriteBatch spriteBatch = null;
-    private BitmapFont font = null;
-    
+
     private GameState gameState;
 
     private static final int HUD_PADDING = 5;
@@ -50,7 +51,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     @Override
     public void create() {
         gameState = new PausableGameState();
-        
+
         camera = new OrthographicCamera();
         int x = Gdx.app.getGraphics().getWidth();
         int y = Gdx.app.getGraphics().getHeight();
@@ -66,8 +67,8 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         playerOneShip = field.getShips().get(0);
 
         spriteBatch = new SpriteBatch();
-        font = new BitmapFont();
-        font.setColor(ColorPalate.HUD_TEXT);
+
+        FontPalate.loadFonts();
     }
 
     @Override
@@ -89,14 +90,14 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     public void render() {
 
         long startPhysics = TimeUtils.nanoTime();
-        
+
         float tickTimeSeconds = Gdx.graphics.getDeltaTime();
         long tickTimeMiliseconds = (long) (tickTimeSeconds * 1000);
         gameState.tick(tickTimeSeconds);
-        
+
         if (gameState.isSimulationRunning()) {
-            //TODO: Why o why is there a 3 here?
-            field.tick( tickTimeMiliseconds * 3, 4);
+            // TODO: Why o why is there a 3 here?
+            field.tick(tickTimeMiliseconds * 3, 4);
             physicsMean.addValue((TimeUtils.nanoTime() - startPhysics) / 1000000000.0f);
         }
 
@@ -117,7 +118,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         renderer.identity();
         renderer.setProjectionMatrix(camera.combined);
 
-        //TODO: Decouple aiming and rendering
+        // TODO: Decouple aiming and rendering
         aimShip();
 
         for (RenderLayer layer : RenderLayer.values()) {
@@ -134,7 +135,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         // FPS Counter
         spriteBatch.begin();
-        font.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 100, 100);
+        FontPalate.HUD_FONT.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 100, 100);
         spriteBatch.end();
 
         // HUD
@@ -156,8 +157,8 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
             // Draw toggle key to interact with hud element
             if (c.requiresInput()) {
                 spriteBatch.begin();
-                font.draw(spriteBatch, hudText[actionKey], hudSpaceAvailable.x + HUD_PADDING, hudSpaceAvailable.y
-                        + HUD_PADDING);
+                FontPalate.HUD_FONT.draw(spriteBatch, hudText[actionKey], hudSpaceAvailable.x + HUD_PADDING,
+                        hudSpaceAvailable.y + HUD_PADDING);
                 spriteBatch.end();
                 actionKey++;
             }
@@ -192,18 +193,18 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        
+
         switch (keycode) {
         case Input.Keys.P:
             gameState.togglePause();
             break;
         }
-        
+
         if (!gameState.isSimulationRunning()) {
-            //Remainder of keys interact with the simulation
+            // Remainder of keys interact with the simulation
             return false;
         }
-        
+
         switch (keycode) {
         case Input.Keys.W:
             playerOneControl.setY(1);
@@ -230,7 +231,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
             break;
         case Input.Keys.F1:
             DebbugingParameters.DRAW_ALL_SHIPS = !DebbugingParameters.DRAW_ALL_SHIPS;
-            DebbugingParameters.DRAW_ORIGIN = !DebbugingParameters.DRAW_ORIGIN; 
+            DebbugingParameters.DRAW_ORIGIN = !DebbugingParameters.DRAW_ORIGIN;
             break;
         }
 
@@ -239,12 +240,12 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean keyUp(int keycode) {
-        
+
         if (!gameState.isSimulationRunning()) {
-            //Remainder of keys interact with the simulation
+            // Remainder of keys interact with the simulation
             return false;
         }
-        
+
         switch (keycode) {
         case Input.Keys.W:
         case Input.Keys.S:

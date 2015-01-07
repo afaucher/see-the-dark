@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.FieldUpdateCallback;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.ai.ShipSteeringEntity;
@@ -23,11 +22,10 @@ import com.mygdx.game.util.DebbugingParameters;
 
 public class Field {
     private World world;
-    @SuppressWarnings("unused")
-    private long gameTime;
     private List<Ship> ships = null;
     private List<Ship> immutableShips = null;
-    private List<FieldUpdateCallback> updates = null;
+    private List<FieldUpdateCallback> updateCallbacks = new ArrayList<FieldUpdateCallback>();
+    private List<FieldRenderCallback> renderCallbacks = new ArrayList<FieldRenderCallback>();
     private static final boolean GRAVITY_ENABLED = false;
 
     // public static final double G = 6.67300E-11;
@@ -68,14 +66,16 @@ public class Field {
                 .setWanderRate(MathUtils.PI / 5);
         
         sse.setSteeringBehavior(wanderSB);
+        
+        registerUpdateCallback(sse);
     }
 
     public void resetLevel(TwoAxisControl playerOne) {
         Vector2 gravity = new Vector2(0.0f, 0.0f);
         boolean doSleep = true;
         world = new World(gravity, doSleep);
-
-        gameTime = 0;
+        updateCallbacks.clear();
+        renderCallbacks.clear();
 
         Vector2 spwanOne = new Vector2(0, 0);
         
@@ -83,17 +83,23 @@ public class Field {
         ships = new ArrayList<Ship>();
         immutableShips = Collections.unmodifiableList(ships);
 
-        ships.add(new Ship(this, playerOne, spwanOne));
-        
+        Ship s = new Ship(this, playerOne, spwanOne);
+        ships.add(s);
         
         addAIShip();
-        
-
-        
 
 
         FieldLayout fieldLayout = new RandomField();
-        updates = fieldLayout.populateField(world);
+        
+        fieldLayout.populateField(this);
+    }
+    
+    public void registerUpdateCallback(FieldUpdateCallback updateCallback) {
+        updateCallbacks.add(updateCallback);
+    }
+    
+    public void registerRenderCallback(FieldRenderCallback renderCallback) {
+        renderCallbacks.add(renderCallback);
     }
 
     public List<Ship> getShips() {
@@ -159,35 +165,26 @@ public class Field {
         float dt = seconds / iters;
 
         for (int i = 0; i < iters; i++) {
-            // clearBallContacts();
             world.step(dt, 10, 10);
-            // processBallContacts();
         }
-
-        gameTime += msecs;
-        // processElementTicks();
+        
+        //TODO: Track simulation clock here?
 
         applyBodyGravity(world);
 
-        for (Ship s : ships) {
-            s.update(seconds);
-        }
-        
-        //Run AI
-        //FIXME: This shouldn't need to be special
-        sse.update(seconds);
-
-        for (FieldUpdateCallback callback : updates) {
+        for (FieldUpdateCallback callback : updateCallbacks) {
             callback.updateCallback(seconds);
         }
     }
+    
+    public boolean shouldDrawShipInFull(Ship s) {
+        boolean drawFull = (ships.get(0) == s) || DebbugingParameters.DRAW_ALL_SHIPS;
+        return drawFull;
+    }
 
     public void render(ShapeRenderer renderer, RenderLayer layer) {
-        // TODO: Until we know who we are rendering, just render the first as
-        // local
-        for (Ship s : ships) {
-            boolean drawFull = (ships.get(0) == s) || DebbugingParameters.DRAW_ALL_SHIPS;
-            s.render(renderer, drawFull, layer);
+        for (FieldRenderCallback callback : renderCallbacks) {
+            callback.render(renderer, layer);
         }
     }
 }

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -15,10 +14,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.Emission;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.SensorAccumlator;
@@ -26,6 +23,8 @@ import com.mygdx.game.SensorHit;
 import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.entities.Beacon;
 import com.mygdx.game.field.Field;
+import com.mygdx.game.field.FieldRenderCallback;
+import com.mygdx.game.field.FieldUpdateCallback;
 import com.mygdx.game.ship.components.BeaconComponent;
 import com.mygdx.game.ship.components.Component;
 import com.mygdx.game.ship.components.Component.ComponentType;
@@ -36,10 +35,11 @@ import com.mygdx.game.ship.components.FuelComponent;
 import com.mygdx.game.ship.components.FuelControlComponent;
 import com.mygdx.game.ship.components.SensorComponent;
 import com.mygdx.game.ship.components.WeaponComponent;
+import com.mygdx.game.style.ColorPalate;
+import com.mygdx.game.style.FontPalate;
 import com.mygdx.game.util.AgedElement;
-import com.mygdx.game.util.PhysicsUtil;
 
-public class Ship {
+public class Ship implements FieldUpdateCallback, FieldRenderCallback {
 
     private Body body;
 
@@ -147,6 +147,9 @@ public class Ship {
         beacon.mountToSection(this, firstSection);
         
         components.add(beacon);
+        
+        field.registerUpdateCallback(this);
+        field.registerRenderCallback(this);
     }
 
     public void aimWeapons(final Vector2 target) {
@@ -216,7 +219,8 @@ public class Ship {
         return body.getPosition();
     }
 
-    public void update(float seconds) {
+    @Override
+    public void updateCallback(float seconds) {
         updateMovements(seconds);
 
         ship.update(seconds);
@@ -233,10 +237,10 @@ public class Ship {
 
     }
 
-    public void render(ShapeRenderer renderer, boolean full, RenderLayer layer) {
+    @Override
+    public void render(ShapeRenderer renderer, RenderLayer layer) {
 
-        if (!full) {
-            // TODO: If same team, render the sensors
+        if (!field.shouldDrawShipInFull(this)) {
             return;
         }
 
@@ -334,7 +338,7 @@ public class Ship {
             renderer.end();
         }
 
-        if (RenderLayer.NAVIGATION.equals(layer)) {
+        if (RenderLayer.BEACON.equals(layer)) {
 
             renderer.begin(ShapeType.Filled);
             renderer.setColor(ColorPalate.NAVIGATION_BEACON);
@@ -360,14 +364,11 @@ public class Ship {
                 if (b.getName() != null) {
                     
                     SpriteBatch spriteBatch = null;
-                    BitmapFont font = null;
                     spriteBatch = new SpriteBatch();
                     spriteBatch.setProjectionMatrix(renderer.getProjectionMatrix());
-                    font = new BitmapFont();
-                    font.setColor(ColorPalate.HUD_TEXT);
     
                     spriteBatch.begin();
-                    font.draw(spriteBatch, b.getName(), beaconLocation.x + horizontalOffset * 2, beaconLocation.y + verticalOffset * 3);
+                    FontPalate.HUD_FONT.draw(spriteBatch, b.getName(), beaconLocation.x + horizontalOffset * 2, beaconLocation.y + verticalOffset * 3);
                     spriteBatch.end();
                 }
 

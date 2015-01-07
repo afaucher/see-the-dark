@@ -10,11 +10,11 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
 import com.mygdx.game.AbstractBodyData;
 import com.mygdx.game.BodyHelper;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.EmissionSource;
 import com.mygdx.game.EmissionSource.EmissionPowerDropoff;
-import com.mygdx.game.FieldUpdateCallback;
+import com.mygdx.game.field.FieldUpdateCallback;
 import com.mygdx.game.field.RandomField;
+import com.mygdx.game.style.ColorPalate;
 import com.mygdx.game.util.PhysicsUtil;
 
 public class Star extends AbstractBodyData implements FieldUpdateCallback {

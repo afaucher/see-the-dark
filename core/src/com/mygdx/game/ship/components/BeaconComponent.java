@@ -3,10 +3,10 @@ package com.mygdx.game.ship.components;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.SensorAccumlator;
 import com.mygdx.game.entities.Beacon;
+import com.mygdx.game.style.ColorPalate;
 
 public class BeaconComponent extends AbstractComponent {
     

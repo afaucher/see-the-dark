@@ -1,16 +1,15 @@
 package com.mygdx.game.field;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.mygdx.game.AbstractBodyData;
 import com.mygdx.game.BodyHelper;
-import com.mygdx.game.ColorPalate;
-import com.mygdx.game.FieldUpdateCallback;
+import com.mygdx.game.entities.NavPoint;
 import com.mygdx.game.entities.Star;
+import com.mygdx.game.style.ColorPalate;
 
 public class RandomField implements FieldLayout {
     private static Random RAND = new Random();
@@ -38,10 +37,11 @@ public class RandomField implements FieldLayout {
     };
 
     @Override
-    public List<FieldUpdateCallback> populateField(World world) {
+    public void populateField(Field field) {
+        
+        World world = field.getWorld();
+        
         // Create World Objects
-
-        List<FieldUpdateCallback> callbacks = new ArrayList<FieldUpdateCallback>();
 
         // Specifically bouncy balls
         for (int i = 0; i < 25; i++) {
@@ -59,9 +59,14 @@ public class RandomField implements FieldLayout {
         }
 
         Star star = new Star(this, world);
-        callbacks.add(star);
-
-        return callbacks;
+        field.registerUpdateCallback(star);
+        
+        for (int i = 0; i < 2; i++) {
+            float x = RAND.nextFloat() * 1000;
+            float y = RAND.nextFloat() * 1000;
+            NavPoint p = new NavPoint(new Vector2(x,y),100, "Nav " + (i + 1));
+            field.registerRenderCallback(p);
+        }
 
     }
 }

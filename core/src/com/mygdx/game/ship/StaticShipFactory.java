@@ -10,7 +10,7 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.mygdx.game.AbstractBodyData;
-import com.mygdx.game.ColorPalate;
+import com.mygdx.game.style.ColorPalate;
 
 public class StaticShipFactory implements ShipFactory {
 

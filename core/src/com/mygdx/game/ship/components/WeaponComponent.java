@@ -10,11 +10,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
-import com.mygdx.game.ColorPalate;
 import com.mygdx.game.EmissionSource;
 import com.mygdx.game.EmissionSource.EmissionPowerDropoff;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.ship.ShipSection;
+import com.mygdx.game.style.ColorPalate;
 import com.mygdx.game.util.CommonUtils;
 import com.mygdx.game.util.PhysicsUtil;
 
