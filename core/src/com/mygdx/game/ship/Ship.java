@@ -1,6 +1,7 @@
 package com.mygdx.game.ship;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,6 +39,7 @@ import com.mygdx.game.ship.components.WeaponComponent;
 import com.mygdx.game.style.ColorPalate;
 import com.mygdx.game.style.FontPalate;
 import com.mygdx.game.util.AgedElement;
+import com.mygdx.game.util.AgedElementComparator;
 
 public class Ship implements FieldUpdateCallback, FieldRenderCallback {
 
@@ -72,6 +74,9 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
     private static final float WEAPON_TARGET_RANGE = 250.0f;
     private static final float WEAPON_TARGET_START_ARC = MathUtils.PI / 6;
     private static final float WEAPON_TARGET_ARC = MathUtils.PI / 3;
+
+    // This is used to sort sensor hits to show freshest on top
+    private static AgedElementComparator<SensorHit> sensorComparator = new AgedElementComparator<SensorHit>();
 
     private static final ShipFactory factory = new StaticShipFactory();
 
@@ -142,12 +147,12 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
         weaponTwo.mountToSection(this, firstSection);
 
         components.add(weaponTwo);
-        
+
         BeaconComponent beacon = new BeaconComponent(this.sensorAccumulator);
         beacon.mountToSection(this, firstSection);
-        
+
         components.add(beacon);
-        
+
         field.registerUpdateCallback(this);
         field.registerRenderCallback(this);
     }
@@ -230,9 +235,8 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
             component.update(seconds);
         }
 
-        // TODO: Use game time, otherwise sensor readings expire while paused
         sensorAccumulator.accumulateEmissions(body);
-        float clockSeconds = TimeUtils.nanoTime() / 1000000000.0f;
+        float clockSeconds = field.getGameClockSeconds();
         sensorAccumulator.age(clockSeconds);
 
     }
@@ -255,7 +259,7 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
             component.render(renderer, layer);
         }
 
-        float clockSeconds = TimeUtils.nanoTime() / 1000000000.0f;
+        float clockSeconds = field.getGameClockSeconds();
 
         // Hits
         if (RenderLayer.PASSIVE_SENSOR_HIT.equals(layer)) {
@@ -284,7 +288,7 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
 
         if (RenderLayer.SENSOR_HIT.equals(layer)) {
             renderSensors(renderer, clockSeconds, sensorAccumulator);
-            
+
             for (Ship s : field.getShips()) {
                 if (s == this) {
                     continue;
@@ -294,7 +298,7 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
                 if (b == null) {
                     continue;
                 }
-                
+
                 SensorAccumlator beaconAccum = b.getAccumulator();
                 if (beaconAccum == null) {
                     continue;
@@ -360,15 +364,16 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
                 renderer.triangle(beaconLocation.x, beaconLocation.y, beaconLocation.x + horizontalOffset,
                         beaconLocation.y + verticalOffset, beaconLocation.x - horizontalOffset, beaconLocation.y
                                 + verticalOffset);
-                
+
                 if (b.getName() != null) {
-                    
+
                     SpriteBatch spriteBatch = null;
                     spriteBatch = new SpriteBatch();
                     spriteBatch.setProjectionMatrix(renderer.getProjectionMatrix());
-    
+
                     spriteBatch.begin();
-                    FontPalate.HUD_FONT.draw(spriteBatch, b.getName(), beaconLocation.x + horizontalOffset * 2, beaconLocation.y + verticalOffset * 3);
+                    FontPalate.HUD_FONT.draw(spriteBatch, b.getName(), beaconLocation.x + horizontalOffset * 2,
+                            beaconLocation.y + verticalOffset * 3);
                     spriteBatch.end();
                 }
 
@@ -381,15 +386,17 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
 
     private static void renderSensors(ShapeRenderer renderer, float clockSeconds, SensorAccumlator sensorAccumulator) {
         renderer.begin(ShapeType.Filled);
-        for (AgedElement<SensorHit> agedHit : sensorAccumulator.getHits(clockSeconds)) {
+        List<AgedElement<SensorHit>> agedHits = sensorAccumulator.getHits(clockSeconds);
+        Collections.sort(agedHits, sensorComparator);
+        for (AgedElement<SensorHit> agedHit : agedHits) {
             SensorHit hit = agedHit.getE();
             Vector2 hitLocation = hit.hitLocation;
             Color hitColor = null;
-            //if (hit.data != null) {
-            //    hitColor = hit.data.getMaterialColor();
-            //} else {
+            if (hit.data != null) {
+                hitColor = hit.data.getMaterialColor();
+            } else {
                 hitColor = ColorPalate.ACTIVE_SENSOR_HITS;
-            //}
+            }
             float colorScale = (float) Math.pow(agedHit.getT(), 0.1);
             hitColor = hitColor.cpy();
             // TODO: We should sort by age to make sure we draw in the right

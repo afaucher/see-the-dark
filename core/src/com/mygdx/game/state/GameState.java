@@ -13,6 +13,6 @@ public interface GameState {
     public void setPause(boolean pause);
     public boolean togglePause();
     
-    public void tick(float seconds);
-    public float getGameTime();
+    //public void tick(float seconds);
+    //public float getGameTime();
 }

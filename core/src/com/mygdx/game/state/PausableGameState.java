@@ -21,18 +21,6 @@ public class PausableGameState implements GameState {
     }
 
     @Override
-    public void tick(float seconds) {
-       if (!this.paused) {
-           gameTimeSeconds += seconds;
-       }
-    }
-    
-    @Override
-    public float getGameTime() {
-        return gameTimeSeconds;
-    }
-
-    @Override
     public boolean togglePause() {
         this.paused = !this.paused;
         return this.paused;

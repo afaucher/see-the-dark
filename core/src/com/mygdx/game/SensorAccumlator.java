@@ -48,7 +48,7 @@ public class SensorAccumlator implements RayCastCallback {
         return agedHits.getElementCollection();
     }
     
-    public Collection<AgedElement<SensorHit>> getHits(float t) {
+    public List<AgedElement<SensorHit>> getHits(float t) {
         return agedHits.getScaledAgedCollection(t);
     }
 

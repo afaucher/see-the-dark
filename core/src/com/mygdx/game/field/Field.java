@@ -31,6 +31,8 @@ public class Field {
     // public static final double G = 6.67300E-11;
     // Extreme gravity!
     public static final double G = 1.0f;
+    
+    private long gameClockMiliseconds = 0;
 
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
     
@@ -152,6 +154,10 @@ public class Field {
             }
         }
     }
+    
+    public float getGameClockSeconds() {
+        return gameClockMiliseconds / 1000.0f;
+    }
 
     /**
      * Called to advance the game's state by the specified number of
@@ -162,6 +168,9 @@ public class Field {
      */
     public void tick(long msecs, int iters) {
         float seconds = (msecs / 1000.0f);
+        
+        gameClockMiliseconds += msecs;
+        
         float dt = seconds / iters;
 
         for (int i = 0; i < iters; i++) {

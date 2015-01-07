@@ -93,7 +93,6 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         float tickTimeSeconds = Gdx.graphics.getDeltaTime();
         long tickTimeMiliseconds = (long) (tickTimeSeconds * 1000);
-        gameState.tick(tickTimeSeconds);
 
         if (gameState.isSimulationRunning()) {
             // TODO: Why o why is there a 3 here?
