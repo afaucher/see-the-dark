@@ -82,7 +82,7 @@ public class EngineComponent extends AbstractComponent {
 
         World world = fixture.getBody().getWorld();
         Vector2 source = transform.getPosition().cpy();
-        // Turn the opisite heading
+        // Turn the opposite heading
         float engineOutputRad = transform.getRotation() + MathUtils.PI;
         float x = source.x + (float) Math.cos(engineOutputRad) * ENGINE_EMISSION_DIST;
         float y = source.y + (float) Math.sin(engineOutputRad) * ENGINE_EMISSION_DIST;

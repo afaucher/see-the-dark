@@ -66,6 +66,7 @@ public class RandomField implements FieldLayout {
             float y = RAND.nextFloat() * 1000;
             NavPoint p = new NavPoint(new Vector2(x,y),100, "Nav " + (i + 1));
             field.registerRenderCallback(p);
+            field.addNavPoint(p);
         }
 
     }

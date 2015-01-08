@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.sensors;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,6 +9,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.game.BodyData;
+import com.mygdx.game.Emission;
 import com.mygdx.game.util.AgedElement;
 import com.mygdx.game.util.AgingList;
 

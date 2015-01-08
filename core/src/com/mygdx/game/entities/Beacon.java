@@ -1,7 +1,7 @@
 package com.mygdx.game.entities;
 
 import com.badlogic.gdx.math.Vector2;
-import com.mygdx.game.SensorAccumlator;
+import com.mygdx.game.sensors.SensorAccumlator;
 
 public class Beacon {
     private final SensorAccumlator accumulator;

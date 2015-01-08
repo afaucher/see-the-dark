@@ -15,6 +15,14 @@ public class NavPoint implements FieldRenderCallback {
     private float radius;
     private String name;
     
+    public Vector2 getLocation() {
+        return location.cpy();
+    }
+    
+    public float getRadius() {
+        return radius;
+    }
+    
     public NavPoint(Vector2 location, float radius, String name) {
         this.location = location;
         this.radius = radius;

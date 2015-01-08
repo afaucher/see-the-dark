@@ -21,6 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.mygdx.game.field.Field;
+import com.mygdx.game.mode.State;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
 import com.mygdx.game.state.GameState;
@@ -231,6 +232,9 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         case Input.Keys.F1:
             DebbugingParameters.DRAW_ALL_SHIPS = !DebbugingParameters.DRAW_ALL_SHIPS;
             DebbugingParameters.DRAW_ORIGIN = !DebbugingParameters.DRAW_ORIGIN;
+            break;
+        case Input.Keys.F2:
+            field.getGameMode().setGameState(State.Playing);
             break;
         }
 

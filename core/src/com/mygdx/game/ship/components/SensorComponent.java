@@ -12,7 +12,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.mygdx.game.EmissionSource;
 import com.mygdx.game.EmissionSource.EmissionPowerDropoff;
 import com.mygdx.game.RenderLayer;
-import com.mygdx.game.SensorAccumlator;
+import com.mygdx.game.sensors.SensorAccumlator;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.style.ColorPalate;
 import com.mygdx.game.util.PhysicsUtil;

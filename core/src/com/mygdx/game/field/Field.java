@@ -15,6 +15,10 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.ai.ShipSteeringEntity;
+import com.mygdx.game.entities.NavPoint;
+import com.mygdx.game.mode.GameMode;
+import com.mygdx.game.mode.RaceGameMode;
+import com.mygdx.game.mode.State;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
 import com.mygdx.game.ship.components.Component.ComponentType;
@@ -22,11 +26,14 @@ import com.mygdx.game.util.DebbugingParameters;
 
 public class Field {
     private World world;
-    private List<Ship> ships = null;
-    private List<Ship> immutableShips = null;
+    private List<Ship> ships = new ArrayList<Ship>();
+    private List<NavPoint> navPoints = new ArrayList<NavPoint>();
+    private List<Ship> immutableShips = Collections.unmodifiableList(ships);
     private List<FieldUpdateCallback> updateCallbacks = new ArrayList<FieldUpdateCallback>();
     private List<FieldRenderCallback> renderCallbacks = new ArrayList<FieldRenderCallback>();
-    private static final boolean GRAVITY_ENABLED = false;
+    private static final boolean GRAVITY_ENABLED = true;
+    
+    private GameMode gameMode = null;
 
     // public static final double G = 6.67300E-11;
     // Extreme gravity!
@@ -37,6 +44,10 @@ public class Field {
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
     
     ShipSteeringEntity sse;
+    
+    public GameMode getGameMode() {
+        return gameMode;
+    }
     
     private void addAIShip() {
         Vector2 spwanTwo = new Vector2(100, 100);
@@ -71,6 +82,10 @@ public class Field {
         
         registerUpdateCallback(sse);
     }
+    
+    public void addNavPoint(NavPoint navPoint) {
+        navPoints.add(navPoint);
+    }
 
     public void resetLevel(TwoAxisControl playerOne) {
         Vector2 gravity = new Vector2(0.0f, 0.0f);
@@ -78,12 +93,13 @@ public class Field {
         world = new World(gravity, doSleep);
         updateCallbacks.clear();
         renderCallbacks.clear();
+        navPoints.clear();
 
         Vector2 spwanOne = new Vector2(0, 0);
         
 
-        ships = new ArrayList<Ship>();
-        immutableShips = Collections.unmodifiableList(ships);
+        ships.clear();
+        
 
         Ship s = new Ship(this, playerOne, spwanOne);
         ships.add(s);
@@ -94,6 +110,10 @@ public class Field {
         FieldLayout fieldLayout = new RandomField();
         
         fieldLayout.populateField(this);
+        
+        gameMode = new RaceGameMode(this, new ArrayList<NavPoint>(navPoints));
+        
+        gameMode.setGameState(State.Playing);
     }
     
     public void registerUpdateCallback(FieldUpdateCallback updateCallback) {
@@ -176,8 +196,6 @@ public class Field {
         for (int i = 0; i < iters; i++) {
             world.step(dt, 10, 10);
         }
-        
-        //TODO: Track simulation clock here?
 
         applyBodyGravity(world);
 
