@@ -1,6 +1,5 @@
 package com.mygdx.game.ship.components;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -15,6 +14,7 @@ import com.mygdx.game.EmissionSource.EmissionPowerDropoff;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.ship.ShipSection;
 import com.mygdx.game.style.ColorPalate;
+import com.mygdx.game.style.FontPalate;
 import com.mygdx.game.util.CommonUtils;
 import com.mygdx.game.util.PhysicsUtil;
 
@@ -32,6 +32,8 @@ public class WeaponComponent extends AbstractComponent {
     private static final float HEAT_PER_WEAPON_JOULE = 0.1f;
 
     private Vector2 weaponTarget = null;
+    // TODO: Will leak when destroyed
+    private SpriteBatch spriteBatch = new SpriteBatch();
 
     private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.LINEAR);
 
@@ -162,14 +164,9 @@ public class WeaponComponent extends AbstractComponent {
         renderer.end();
 
         if (weaponTarget != null) {
-            SpriteBatch spriteBatch = null;
-            BitmapFont font = null;
-            spriteBatch = new SpriteBatch();
-            font = new BitmapFont();
-            font.setColor(ColorPalate.HUD_TEXT);
-
             spriteBatch.begin();
-            font.draw(spriteBatch, "Target: " + weaponTarget.x + "," + weaponTarget.y, weaponTarget.x, weaponTarget.y);
+            FontPalate.HUD_FONT.draw(spriteBatch, "Target: " + weaponTarget.x + "," + weaponTarget.y, weaponTarget.x,
+                    weaponTarget.y);
             spriteBatch.end();
         }
 

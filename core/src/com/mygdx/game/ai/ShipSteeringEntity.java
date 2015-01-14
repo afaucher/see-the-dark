@@ -1,4 +1,4 @@
-package com.mygdx.game.ai;
+/*package com.mygdx.game.ai;
 
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
@@ -71,3 +71,4 @@ public class ShipSteeringEntity extends GenericSteerable implements FieldUpdateC
     }
 
 }
+*/

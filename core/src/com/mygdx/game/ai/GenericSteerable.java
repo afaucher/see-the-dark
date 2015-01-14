@@ -1,4 +1,4 @@
-package com.mygdx.game.ai;
+/*package com.mygdx.game.ai;
 
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.math.Vector2;
@@ -88,3 +88,4 @@ public abstract class GenericSteerable implements Steerable<Vector2> {
         this.maxAngularAcceleration = maxAngularAcceleration;
     }
 }
+*/

@@ -79,6 +79,8 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
     private static AgedElementComparator<SensorHit> sensorComparator = new AgedElementComparator<SensorHit>();
 
     private static final ShipFactory factory = new StaticShipFactory();
+    // TODO: Will leak when destroyed
+    SpriteBatch spriteBatch = new SpriteBatch();
 
     // Only for the AI impl
     public Body getBody() {
@@ -367,8 +369,6 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
 
                 if (b.getName() != null) {
 
-                    SpriteBatch spriteBatch = null;
-                    spriteBatch = new SpriteBatch();
                     spriteBatch.setProjectionMatrix(renderer.getProjectionMatrix());
 
                     spriteBatch.begin();

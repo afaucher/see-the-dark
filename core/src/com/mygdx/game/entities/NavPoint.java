@@ -14,6 +14,8 @@ public class NavPoint implements FieldRenderCallback {
     private Vector2 location;
     private float radius;
     private String name;
+    //TODO: Will leak when destroyed
+    private SpriteBatch spriteBatch = new SpriteBatch();
     
     public Vector2 getLocation() {
         return location.cpy();
@@ -45,8 +47,7 @@ public class NavPoint implements FieldRenderCallback {
         renderer.setColor(ColorPalate.BACKGROUND);
         renderer.circle(location.x, location.y, radius * 3 / 4);
         
-        SpriteBatch spriteBatch = null;
-        spriteBatch = new SpriteBatch();
+        
         spriteBatch.setProjectionMatrix(renderer.getProjectionMatrix());
 
         //TODO: Ideally this would be drawn around the point nearest to the ship

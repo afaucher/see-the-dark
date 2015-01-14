@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.badlogic.gdx.ai.steer.behaviors.Wander;
-import com.badlogic.gdx.ai.steer.limiters.LinearAccelerationLimiter;
+//import com.badlogic.gdx.ai.steer.behaviors.Wander;
+//import com.badlogic.gdx.ai.steer.limiters.LinearAccelerationLimiter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -14,7 +14,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
-import com.mygdx.game.ai.ShipSteeringEntity;
+//import com.mygdx.game.ai.ShipSteeringEntity;
 import com.mygdx.game.entities.NavPoint;
 import com.mygdx.game.mode.GameMode;
 import com.mygdx.game.mode.RaceGameMode;
@@ -43,7 +43,7 @@ public class Field {
 
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
     
-    ShipSteeringEntity sse;
+    //ShipSteeringEntity sse;
     
     public GameMode getGameMode() {
         return gameMode;
@@ -64,7 +64,7 @@ public class Field {
         
         ships.add(aiShip);
         
-        sse = new ShipSteeringEntity(aiShip, aiControl); 
+        /*sse = new ShipSteeringEntity(aiShip, aiControl); 
         
         //FIXME: THis is completely bogus
         Wander<Vector2> wanderSB = new Wander<Vector2>(sse) //
@@ -80,7 +80,7 @@ public class Field {
         
         sse.setSteeringBehavior(wanderSB);
         
-        registerUpdateCallback(sse);
+        registerUpdateCallback(sse);*/
     }
     
     public void addNavPoint(NavPoint navPoint) {
