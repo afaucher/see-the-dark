@@ -8,8 +8,8 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.resizable = true;
-		config.width = 800;
-		config.height = 800;
+		config.width = 1024;
+		config.height = 1000;
 		config.title = "See The Dark";
 		new LwjglApplication(new MyGdxGame(), config);
 	}

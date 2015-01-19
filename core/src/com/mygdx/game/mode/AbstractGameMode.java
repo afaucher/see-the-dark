@@ -9,6 +9,7 @@ public abstract class AbstractGameMode implements GameMode {
 
     public AbstractGameMode(Field field) {
         this.field = field;
+        this.state = State.Setup;
         
         field.registerRenderCallback(this);
         field.registerUpdateCallback(this);

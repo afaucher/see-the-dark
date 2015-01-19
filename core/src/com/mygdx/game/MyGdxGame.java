@@ -1,5 +1,9 @@
 package com.mygdx.game;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -18,7 +22,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.WindowedMean;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.mygdx.game.entities.NavPoint;
 import com.mygdx.game.field.Field;
+import com.mygdx.game.mode.GameMode;
+import com.mygdx.game.mode.RaceGameMode;
 import com.mygdx.game.mode.State;
 import com.mygdx.game.ship.Ship;
 import com.mygdx.game.ship.components.Component;
@@ -32,7 +39,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     private OrthographicCamera camera = null;
     private Field field = null;
     private ShapeRenderer renderer = null;
-    private TwoAxisControl playerOneControl = new TwoAxisControl();
+    private TwoAxisControl playerOneControl = null;
     private Ship playerOneShip = null;
     private WindowedMean physicsMean = new WindowedMean(10);
     private WindowedMean renderMean = new WindowedMean(10);
@@ -40,10 +47,17 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     private Vector3 touchScreenCoordinate = null;
     private SpriteBatch spriteBatch = null;
 
-    private GameState gameState;
+    private GameState gameState = null;
+    private GameMode gameMode = null;
+    
+    public GameMode getGameMode() {
+        return gameMode;
+    }
 
     private static final int HUD_PADDING = 5;
     private static final int HUD_HEIGHT = 15;
+    
+    private List<Player> players = new ArrayList<Player>();
 
     private static final CharSequence[] hudText = { "1", "2", "3", "4", "5", "6", "7", "8", "9", };
 
@@ -61,13 +75,54 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         Gdx.input.setInputProcessor(this);
 
-        field.resetLevel(playerOneControl);
-
-        playerOneShip = field.getShips().get(0);
-
         spriteBatch = new SpriteBatch();
 
         FontPalate.loadFonts();
+        
+        //Setup initial game
+
+        field.resetLevel();
+        
+        //Setup Players
+        
+        Player playerOne = new Player("One");
+        players.add(playerOne);
+        
+        Player playerTwo = new Player("Two");
+        players.add(playerTwo);
+        
+        playerOneControl = playerOne.getSteetingControl();
+        
+        Vector2 spwanOne = new Vector2(0,0);
+        playerOneShip = new Ship(field, playerOneControl, spwanOne);
+        
+        playerOne.attachShip(playerOneShip);
+        
+        Vector2 spwanTwo = new Vector2(100,100);
+        Ship playerTwoShip = new Ship(field, playerTwo.getSteetingControl(), spwanTwo);
+        
+        playerTwo.attachShip(playerTwoShip);
+        
+        gameMode = new RaceGameMode(this, field, new ArrayList<NavPoint>(field.getNavPoints()));
+        
+        gameMode.setGameState(State.Playing);
+        
+    }
+    
+    public Collection<Player> getPlayers()  {
+        return players;
+    }
+    
+    public Player getPlayerForShip(Ship s) {
+        if (s == null) {
+            return null;
+        }
+        for (Player player : players) {
+            if (s == player.getShip()) {
+                return player;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -109,7 +164,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         // Camera
         Vector2 cameraPosition = ship.getPosition();
-
+        
         camera.position.set(cameraPosition, 0);
         camera.update();
 
@@ -120,7 +175,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         aimShip();
 
         for (RenderLayer layer : RenderLayer.values()) {
-            field.render(renderer, layer);
+            field.render(renderer, layer, players.get(0));
         }
 
         // AXIS
@@ -200,6 +255,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         if (!gameState.isSimulationRunning()) {
             // Remainder of keys interact with the simulation
+            // TODO: Key presses started before or during pause will misbehave
             return false;
         }
 
@@ -232,7 +288,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
             DebbugingParameters.DRAW_ORIGIN = !DebbugingParameters.DRAW_ORIGIN;
             break;
         case Input.Keys.F2:
-            field.getGameMode().setGameState(State.Playing);
+            getGameMode().setGameState(State.Playing);
             break;
         }
 

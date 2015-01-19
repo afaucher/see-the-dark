@@ -1,8 +1,9 @@
 package com.mygdx.game.mode;
 
 public enum State {
-    Playing(0),
-    GameOver(1);
+    Setup(0),
+    Playing(1),
+    GameOver(2);
     
     private int state;
     

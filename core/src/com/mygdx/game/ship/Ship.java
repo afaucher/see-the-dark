@@ -18,11 +18,12 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.mygdx.game.Emission;
+import com.mygdx.game.Player;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
 import com.mygdx.game.entities.Beacon;
 import com.mygdx.game.field.Field;
-import com.mygdx.game.field.FieldRenderCallback;
+import com.mygdx.game.field.RenderCallback;
 import com.mygdx.game.field.FieldUpdateCallback;
 import com.mygdx.game.sensors.SensorAccumlator;
 import com.mygdx.game.sensors.SensorHit;
@@ -41,7 +42,7 @@ import com.mygdx.game.style.FontPalate;
 import com.mygdx.game.util.AgedElement;
 import com.mygdx.game.util.AgedElementComparator;
 
-public class Ship implements FieldUpdateCallback, FieldRenderCallback {
+public class Ship implements FieldUpdateCallback, RenderCallback {
 
     private Body body;
 
@@ -154,9 +155,12 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
         beacon.mountToSection(this, firstSection);
 
         components.add(beacon);
+        
+        //Self Register
 
         field.registerUpdateCallback(this);
         field.registerRenderCallback(this);
+        field.spawnShip(this);
     }
 
     public void aimWeapons(final Vector2 target) {
@@ -244,7 +248,7 @@ public class Ship implements FieldUpdateCallback, FieldRenderCallback {
     }
 
     @Override
-    public void render(ShapeRenderer renderer, RenderLayer layer) {
+    public void render(ShapeRenderer renderer, RenderLayer layer, Player player) {
 
         if (!field.shouldDrawShipInFull(this)) {
             return;

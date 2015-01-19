@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 //import com.badlogic.gdx.ai.steer.behaviors.Wander;
 //import com.badlogic.gdx.ai.steer.limiters.LinearAccelerationLimiter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.game.Player;
 import com.mygdx.game.RenderLayer;
 import com.mygdx.game.TwoAxisControl;
 //import com.mygdx.game.ai.ShipSteeringEntity;
@@ -28,12 +30,11 @@ public class Field {
     private World world;
     private List<Ship> ships = new ArrayList<Ship>();
     private List<NavPoint> navPoints = new ArrayList<NavPoint>();
+
     private List<Ship> immutableShips = Collections.unmodifiableList(ships);
     private List<FieldUpdateCallback> updateCallbacks = new ArrayList<FieldUpdateCallback>();
-    private List<FieldRenderCallback> renderCallbacks = new ArrayList<FieldRenderCallback>();
-    private static final boolean GRAVITY_ENABLED = true;
-    
-    private GameMode gameMode = null;
+    private List<RenderCallback> renderCallbacks = new ArrayList<RenderCallback>();
+    private static final boolean GRAVITY_ENABLED = false;
 
     // public static final double G = 6.67300E-11;
     // Extreme gravity!
@@ -44,10 +45,6 @@ public class Field {
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
     
     //ShipSteeringEntity sse;
-    
-    public GameMode getGameMode() {
-        return gameMode;
-    }
     
     private void addAIShip() {
         Vector2 spwanTwo = new Vector2(100, 100);
@@ -87,7 +84,7 @@ public class Field {
         navPoints.add(navPoint);
     }
 
-    public void resetLevel(TwoAxisControl playerOne) {
+    public void resetLevel() {
         Vector2 gravity = new Vector2(0.0f, 0.0f);
         boolean doSleep = true;
         world = new World(gravity, doSleep);
@@ -95,32 +92,28 @@ public class Field {
         renderCallbacks.clear();
         navPoints.clear();
 
-        Vector2 spwanOne = new Vector2(0, 0);
+        //Vector2 spwanOne = new Vector2(0, 0);
         
 
         ships.clear();
         
 
-        Ship s = new Ship(this, playerOne, spwanOne);
+        /*Ship s = new Ship(this, playerOne, spwanOne);
         ships.add(s);
         
-        addAIShip();
+        addAIShip();*/
 
 
         FieldLayout fieldLayout = new RandomField();
         
         fieldLayout.populateField(this);
-        
-        gameMode = new RaceGameMode(this, new ArrayList<NavPoint>(navPoints));
-        
-        gameMode.setGameState(State.Playing);
     }
     
     public void registerUpdateCallback(FieldUpdateCallback updateCallback) {
         updateCallbacks.add(updateCallback);
     }
     
-    public void registerRenderCallback(FieldRenderCallback renderCallback) {
+    public void registerRenderCallback(RenderCallback renderCallback) {
         renderCallbacks.add(renderCallback);
     }
 
@@ -128,8 +121,15 @@ public class Field {
         return immutableShips;
     }
     
+    public void spawnShip(Ship s) {
+        ships.add(s);
+    }
+    
     public World getWorld() {
         return world;
+    }
+    public List<NavPoint> getNavPoints() {
+        return navPoints;
     }
 
     private void applyBodyGravity(World w) {
@@ -209,9 +209,9 @@ public class Field {
         return drawFull;
     }
 
-    public void render(ShapeRenderer renderer, RenderLayer layer) {
-        for (FieldRenderCallback callback : renderCallbacks) {
-            callback.render(renderer, layer);
+    public void render(ShapeRenderer renderer, RenderLayer layer, Player player) {
+        for (RenderCallback callback : renderCallbacks) {
+            callback.render(renderer, layer, player);
         }
     }
 }

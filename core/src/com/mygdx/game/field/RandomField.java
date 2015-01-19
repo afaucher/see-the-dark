@@ -44,14 +44,14 @@ public class RandomField implements FieldLayout {
         // Create World Objects
 
         // Specifically bouncy balls
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 10; i++) {
             float x = RAND.nextFloat() * 1000;
             float y = RAND.nextFloat() * 1000;
             float radius = RAND.nextFloat() * (MAX_BALL_RADIUS - MIN_BALL_RADIUS) + MIN_BALL_RADIUS;
             BodyHelper.createCircle(world, x, y, radius, false, bouncyBallBodyData);
         }
         // Trees
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 10; i++) {
             float x = RAND.nextFloat() * 1000;
             float y = RAND.nextFloat() * 1000;
             float radius = RAND.nextFloat() * (MAX_TREE_RADIUS - MIN_TREE_RADIUS) + MIN_TREE_RADIUS;
@@ -61,7 +61,7 @@ public class RandomField implements FieldLayout {
         Star star = new Star(this, world);
         field.registerUpdateCallback(star);
         
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 5; i++) {
             float x = RAND.nextFloat() * 1000;
             float y = RAND.nextFloat() * 1000;
             NavPoint p = new NavPoint(new Vector2(x,y),100, "Nav " + (i + 1));
