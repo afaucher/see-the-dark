@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.beanfarmergames.seethedark.util.CommonUtils;
 
 public class CommonUtilsTest {
 

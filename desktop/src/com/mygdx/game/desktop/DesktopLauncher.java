@@ -2,7 +2,7 @@ package com.mygdx.game.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.mygdx.game.MyGdxGame;
+import com.beanfarmergames.seethedark.game.SeeTheDark;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
@@ -11,6 +11,6 @@ public class DesktopLauncher {
 		config.width = 1024;
 		config.height = 1000;
 		config.title = "See The Dark";
-		new LwjglApplication(new MyGdxGame(), config);
+		new LwjglApplication(new SeeTheDark(), config);
 	}
 }
