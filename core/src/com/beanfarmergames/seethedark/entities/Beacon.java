@@ -7,7 +7,7 @@ public class Beacon {
     private final SensorAccumlator accumulator;
     private final String name;
     private final Vector2 location;
-    
+
     public Beacon(SensorAccumlator accumulator, String name, Vector2 location) {
         this.accumulator = accumulator;
         this.name = name;
@@ -25,6 +25,5 @@ public class Beacon {
     public Vector2 getLocation() {
         return location;
     }
-    
-    
+
 }

@@ -11,19 +11,19 @@ public class Player {
         this.name = name;
         this.steeringControl = new TwoAxisControl();
     }
-    
+
     public TwoAxisControl getSteetingControl() {
         return steeringControl;
     }
-    
+
     public void attachShip(Ship s) {
         this.s = s;
     }
-    
+
     public Ship getShip() {
         return s;
     }
-    
+
     public String getName() {
         return name;
     }

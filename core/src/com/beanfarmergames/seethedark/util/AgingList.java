@@ -20,11 +20,11 @@ public class AgingList<T> {
         }
         return c;
     }
-    
+
     public List<AgedElement<T>> getScaledAgedCollection(float t) {
         List<AgedElement<T>> c = new ArrayList<AgedElement<T>>(agedList.size());
         for (AgedElement<T> e : agedList) {
-            float scaledAge = Math.min(1.0f,(t - e.getT()) / maxAgeSeconds);
+            float scaledAge = Math.min(1.0f, (t - e.getT()) / maxAgeSeconds);
             scaledAge = Math.max(0.0f, scaledAge);
             c.add(new AgedElement<T>(scaledAge, e.getE()));
         }

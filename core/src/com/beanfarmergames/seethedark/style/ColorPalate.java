@@ -37,7 +37,8 @@ public class ColorPalate {
 
     public static final Color SECTION_HULL_INDICATOR = new Color(0, 0, 0, 1);
     public static final Color SECTION_HEAT_INDICATOR = new Color(1, 0, 0, 1);
-    
+
     public static final Color NAVIGATION_BEACON = new Color(1, 0, 0, 1);
-    public static final Color NAVIGATION_POINT = new Color(0.26f, 0.27f, 0.32f, 1); // Light Blue
+    public static final Color NAVIGATION_POINT = new Color(0.26f, 0.27f, 0.32f, 1); // Light
+                                                                                    // Blue
 }

@@ -159,8 +159,8 @@ public class RaceGameMode extends AbstractGameMode {
             int x = 100;
             int y = 150;
 
-            String status = String.format("Point %d/%d, Lap %d/%d", nextPoint.getNextPoint() + 1, track.size(),
-                    nextPoint.getLap() + 1, laps);
+            String status = "Point " + nextPoint.getNextPoint() + 1 + "/" + track.size() + ", Lap " 
+                    + (nextPoint.getLap() + 1) + "/" + laps;
             spriteBatch.setColor(ColorPalate.HUD_TEXT);
             FontPalate.HUD_FONT.draw(spriteBatch, status, x, y);
 

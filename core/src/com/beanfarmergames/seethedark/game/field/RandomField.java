@@ -38,9 +38,9 @@ public class RandomField implements FieldLayout {
 
     @Override
     public void populateField(Field field) {
-        
+
         World world = field.getWorld();
-        
+
         // Create World Objects
 
         // Specifically bouncy balls
@@ -60,11 +60,11 @@ public class RandomField implements FieldLayout {
 
         Star star = new Star(this, world);
         field.registerUpdateCallback(star);
-        
+
         for (int i = 0; i < 5; i++) {
             float x = RAND.nextFloat() * 1000;
             float y = RAND.nextFloat() * 1000;
-            NavPoint p = new NavPoint(new Vector2(x,y),100, "Nav " + (i + 1));
+            NavPoint p = new NavPoint(new Vector2(x, y), 100, "Nav " + (i + 1));
             field.registerRenderCallback(p);
             field.addNavPoint(p);
         }

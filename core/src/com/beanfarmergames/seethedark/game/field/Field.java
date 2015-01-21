@@ -4,17 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
-
-
-
-
-
-
 //import com.badlogic.gdx.ai.steer.behaviors.Wander;
 //import com.badlogic.gdx.ai.steer.limiters.LinearAccelerationLimiter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
@@ -25,12 +17,9 @@ import com.beanfarmergames.seethedark.entities.NavPoint;
 import com.beanfarmergames.seethedark.game.Player;
 import com.beanfarmergames.seethedark.game.RenderLayer;
 import com.beanfarmergames.seethedark.game.TwoAxisControl;
-//import com.mygdx.game.ai.ShipSteeringEntity;
-import com.beanfarmergames.seethedark.mode.GameMode;
-import com.beanfarmergames.seethedark.mode.RaceGameMode;
-import com.beanfarmergames.seethedark.mode.State;
 import com.beanfarmergames.seethedark.ship.Ship;
 import com.beanfarmergames.seethedark.util.DebbugingParameters;
+//import com.mygdx.game.ai.ShipSteeringEntity;
 
 public class Field {
     private World world;
@@ -45,47 +34,47 @@ public class Field {
     // public static final double G = 6.67300E-11;
     // Extreme gravity!
     public static final double G = 1.0f;
-    
+
     private long gameClockMiliseconds = 0;
 
     private Array<Body> gravityBodyArray = new Array<Body>(false, 100, Body.class);
-    
-    //ShipSteeringEntity sse;
-    
+
+    // ShipSteeringEntity sse;
+
     private void addAIShip() {
         Vector2 spwanTwo = new Vector2(100, 100);
-        
+
         TwoAxisControl aiControl = new TwoAxisControl();
-        
+
         Ship aiShip = new Ship(this, aiControl, spwanTwo);
         for (Component c : aiShip.getComponents()) {
             if (ComponentType.Engine.equals(c.getComponentType())) {
-                //Fixme: This is super hacky to turn on engines
+                // Fixme: This is super hacky to turn on engines
                 c.keyPressed();
             }
         }
-        
+
         ships.add(aiShip);
-        
-        /*sse = new ShipSteeringEntity(aiShip, aiControl); 
-        
-        //FIXME: THis is completely bogus
-        Wander<Vector2> wanderSB = new Wander<Vector2>(sse) //
-                // Don't use Face internally because independent facing is off
-                .setFaceEnabled(false) //
-                // We don't need a limiter supporting angular components because Face is not used
-                // No need to call setAlignTolerance, setDecelerationRadius and setTimeToTarget for the same reason
-                .setLimiter(new LinearAccelerationLimiter(1)) //
-                .setWanderOffset(60) //
-                .setWanderOrientation(10) //
-                .setWanderRadius(40) //
-                .setWanderRate(MathUtils.PI / 5);
-        
-        sse.setSteeringBehavior(wanderSB);
-        
-        registerUpdateCallback(sse);*/
+
+        /*
+         * sse = new ShipSteeringEntity(aiShip, aiControl);
+         * 
+         * //FIXME: THis is completely bogus Wander<Vector2> wanderSB = new
+         * Wander<Vector2>(sse) // // Don't use Face internally because
+         * independent facing is off .setFaceEnabled(false) // // We don't need
+         * a limiter supporting angular components because Face is not used //
+         * No need to call setAlignTolerance, setDecelerationRadius and
+         * setTimeToTarget for the same reason .setLimiter(new
+         * LinearAccelerationLimiter(1)) // .setWanderOffset(60) //
+         * .setWanderOrientation(10) // .setWanderRadius(40) //
+         * .setWanderRate(MathUtils.PI / 5);
+         * 
+         * sse.setSteeringBehavior(wanderSB);
+         * 
+         * registerUpdateCallback(sse);
+         */
     }
-    
+
     public void addNavPoint(NavPoint navPoint) {
         navPoints.add(navPoint);
     }
@@ -98,27 +87,25 @@ public class Field {
         renderCallbacks.clear();
         navPoints.clear();
 
-        //Vector2 spwanOne = new Vector2(0, 0);
-        
+        // Vector2 spwanOne = new Vector2(0, 0);
 
         ships.clear();
-        
 
-        /*Ship s = new Ship(this, playerOne, spwanOne);
-        ships.add(s);
-        
-        addAIShip();*/
-
+        /*
+         * Ship s = new Ship(this, playerOne, spwanOne); ships.add(s);
+         * 
+         * addAIShip();
+         */
 
         FieldLayout fieldLayout = new RandomField();
-        
+
         fieldLayout.populateField(this);
     }
-    
+
     public void registerUpdateCallback(FieldUpdateCallback updateCallback) {
         updateCallbacks.add(updateCallback);
     }
-    
+
     public void registerRenderCallback(RenderCallback renderCallback) {
         renderCallbacks.add(renderCallback);
     }
@@ -126,14 +113,15 @@ public class Field {
     public List<Ship> getShips() {
         return immutableShips;
     }
-    
+
     public void spawnShip(Ship s) {
         ships.add(s);
     }
-    
+
     public World getWorld() {
         return world;
     }
+
     public List<NavPoint> getNavPoints() {
         return navPoints;
     }
@@ -180,7 +168,7 @@ public class Field {
             }
         }
     }
-    
+
     public float getGameClockSeconds() {
         return gameClockMiliseconds / 1000.0f;
     }
@@ -194,9 +182,9 @@ public class Field {
      */
     public void tick(long msecs, int iters) {
         float seconds = (msecs / 1000.0f);
-        
+
         gameClockMiliseconds += msecs;
-        
+
         float dt = seconds / iters;
 
         for (int i = 0; i < iters; i++) {
@@ -209,7 +197,7 @@ public class Field {
             callback.updateCallback(seconds);
         }
     }
-    
+
     public boolean shouldDrawShipInFull(Ship s) {
         boolean drawFull = (ships.get(0) == s) || DebbugingParameters.DRAW_ALL_SHIPS;
         return drawFull;

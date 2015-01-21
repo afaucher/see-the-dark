@@ -1,7 +1,6 @@
 package com.beanfarmergames.seethedark.ship;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,9 +15,9 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.beanfarmergames.seethedark.components.BeaconComponent;
 import com.beanfarmergames.seethedark.components.Component;
+import com.beanfarmergames.seethedark.components.Component.ComponentType;
 import com.beanfarmergames.seethedark.components.EngineComponent;
 import com.beanfarmergames.seethedark.components.EngineContribution;
 import com.beanfarmergames.seethedark.components.EngineControlComponent;
@@ -26,7 +25,6 @@ import com.beanfarmergames.seethedark.components.FuelComponent;
 import com.beanfarmergames.seethedark.components.FuelControlComponent;
 import com.beanfarmergames.seethedark.components.SensorComponent;
 import com.beanfarmergames.seethedark.components.WeaponComponent;
-import com.beanfarmergames.seethedark.components.Component.ComponentType;
 import com.beanfarmergames.seethedark.entities.Beacon;
 import com.beanfarmergames.seethedark.game.Emission;
 import com.beanfarmergames.seethedark.game.Player;
@@ -155,8 +153,8 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
         beacon.mountToSection(this, firstSection);
 
         components.add(beacon);
-        
-        //Self Register
+
+        // Self Register
 
         field.registerUpdateCallback(this);
         field.registerRenderCallback(this);

@@ -1,7 +1,7 @@
 package com.beanfarmergames.seethedark.state;
 
 public class PausableGameState implements GameState {
-    
+
     private boolean paused = false;
     private float gameTimeSeconds = 0;
 

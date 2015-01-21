@@ -49,14 +49,14 @@ public class SeeTheDark extends ApplicationAdapter implements InputProcessor {
 
     private GameState gameState = null;
     private GameMode gameMode = null;
-    
+
     public GameMode getGameMode() {
         return gameMode;
     }
 
     private static final int HUD_PADDING = 5;
     private static final int HUD_HEIGHT = 15;
-    
+
     private List<Player> players = new ArrayList<Player>();
 
     private static final CharSequence[] hudText = { "1", "2", "3", "4", "5", "6", "7", "8", "9", };
@@ -78,41 +78,41 @@ public class SeeTheDark extends ApplicationAdapter implements InputProcessor {
         spriteBatch = new SpriteBatch();
 
         FontPalate.loadFonts();
-        
-        //Setup initial game
+
+        // Setup initial game
 
         field.resetLevel();
-        
-        //Setup Players
-        
+
+        // Setup Players
+
         Player playerOne = new Player("One");
         players.add(playerOne);
-        
+
         Player playerTwo = new Player("Two");
         players.add(playerTwo);
-        
+
         playerOneControl = playerOne.getSteetingControl();
-        
-        Vector2 spwanOne = new Vector2(0,0);
+
+        Vector2 spwanOne = new Vector2(0, 0);
         playerOneShip = new Ship(field, playerOneControl, spwanOne);
-        
+
         playerOne.attachShip(playerOneShip);
-        
-        Vector2 spwanTwo = new Vector2(100,100);
+
+        Vector2 spwanTwo = new Vector2(100, 100);
         Ship playerTwoShip = new Ship(field, playerTwo.getSteetingControl(), spwanTwo);
-        
+
         playerTwo.attachShip(playerTwoShip);
-        
+
         gameMode = new RaceGameMode(this, field, new ArrayList<NavPoint>(field.getNavPoints()));
-        
+
         gameMode.setGameState(State.Playing);
-        
+
     }
-    
-    public Collection<Player> getPlayers()  {
+
+    public Collection<Player> getPlayers() {
         return players;
     }
-    
+
     public Player getPlayerForShip(Ship s) {
         if (s == null) {
             return null;
@@ -164,7 +164,7 @@ public class SeeTheDark extends ApplicationAdapter implements InputProcessor {
 
         // Camera
         Vector2 cameraPosition = ship.getPosition();
-        
+
         camera.position.set(cameraPosition, 0);
         camera.update();
 

@@ -8,8 +8,10 @@ public interface GameState {
      * @return
      */
     public boolean isSimulationRunning();
-    
+
     public boolean getPause();
+
     public void setPause(boolean pause);
+
     public boolean togglePause();
 }

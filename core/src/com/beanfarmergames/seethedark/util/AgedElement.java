@@ -3,7 +3,7 @@ package com.beanfarmergames.seethedark.util;
 public final class AgedElement<T> {
     private final float t;
     private final T e;
-    
+
     public float getT() {
         return t;
     }

@@ -17,7 +17,7 @@ import com.beanfarmergames.seethedark.util.AgingList;
 public class SensorAccumlator implements RayCastCallback {
     private List<SensorHit> hits = new ArrayList<SensorHit>();
     private List<Emission> emissions = new ArrayList<Emission>();
-    
+
     private AgingList<SensorHit> agedHits = new AgingList<SensorHit>(0.5f);
     private AgingList<Emission> agedEmissions = new AgingList<Emission>(5f);
 
@@ -37,27 +37,25 @@ public class SensorAccumlator implements RayCastCallback {
 
         return 1;
     }
-    
+
     public Collection<Emission> getReceivedEmissions() {
         return agedEmissions.getElementCollection();
     }
-    
+
     public Collection<AgedElement<Emission>> getReceivedEmissions(float t) {
         return agedEmissions.getScaledAgedCollection(t);
     }
-    
+
     public Collection<SensorHit> getHits() {
         return agedHits.getElementCollection();
     }
-    
+
     public List<AgedElement<SensorHit>> getHits(float t) {
         return agedHits.getScaledAgedCollection(t);
     }
 
-
     public void accumulateEmissions(Body body) {
-        
-        
+
         Array<Fixture> fixtures = body.getFixtureList();
         for (Fixture fixture : fixtures) {
             BodyData bodyData = (BodyData) fixture.getUserData();
@@ -75,15 +73,15 @@ public class SensorAccumlator implements RayCastCallback {
         emissions.addAll(emissions);
 
     }
-    
+
     public void age(float clockSeconds) {
         agedHits.appendCollection(clockSeconds, hits);
         agedHits.purge(clockSeconds);
         hits.clear();
-        
+
         agedEmissions.appendCollection(clockSeconds, emissions);
         agedEmissions.purge(clockSeconds);
         emissions.clear();
     }
-    
+
 }

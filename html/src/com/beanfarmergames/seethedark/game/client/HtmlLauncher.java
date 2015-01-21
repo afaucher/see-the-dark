@@ -1,4 +1,4 @@
-package com.mygdx.game.client;
+package com.beanfarmergames.seethedark.game.client;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
