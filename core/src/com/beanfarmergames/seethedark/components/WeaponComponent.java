@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
+import com.beanfarmergames.seethedark.components.configuration.WeaponConfiguration;
 import com.beanfarmergames.seethedark.game.EmissionSource;
 import com.beanfarmergames.seethedark.game.EmissionSource.EmissionPowerDropoff;
 import com.beanfarmergames.seethedark.game.RenderLayer;
@@ -21,15 +22,11 @@ import com.beanfarmergames.seethedark.util.PhysicsUtil;
 public class WeaponComponent extends AbstractComponent {
 
     private boolean weaponEnabled = false;
-    private float weaponRadius;
-    private float weaponRadius2;
-    private float weaponStartAngle;
-    private float weaponArcAngle;
+    private float weaponStartAngleRad;
     private static float weaponTargetRadius = 5.0f;
     private static final Vector2 BASE_ANGLE = new Vector2(1, 0);
-    private static final float WEAPON_EMISSION_POWER = 100000.0f;
-    // private static final float WEAPON_RADIUS = 1000.0f;
-    private static final float HEAT_PER_WEAPON_JOULE = 0.1f;
+    
+    private final WeaponConfiguration configuration;
 
     private Vector2 weaponTarget = null;
     // TODO: Will leak when destroyed
@@ -37,11 +34,9 @@ public class WeaponComponent extends AbstractComponent {
 
     private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.LINEAR);
 
-    public WeaponComponent(float weaponRadius, float weaponStartAngle, float weaponArcAngle) {
-        this.weaponRadius = weaponRadius;
-        this.weaponRadius2 = weaponRadius * weaponRadius;
-        this.weaponStartAngle = weaponStartAngle;
-        this.weaponArcAngle = weaponArcAngle;
+    public WeaponComponent(WeaponConfiguration configuration, float weaponMidAngleRad) {
+    	this.configuration = configuration;
+    	this.weaponStartAngleRad = weaponMidAngleRad - configuration.getWeaponArcRad() / 2.0f;
     }
 
     @Override
@@ -115,8 +110,8 @@ public class WeaponComponent extends AbstractComponent {
 
         // TODO: Project the target out, we should fire as far as we can in case
         // we miss.
-        emissionSource.emit(world, rayStart, weaponTarget, WEAPON_EMISSION_POWER);
-        section.accumlateHeat(WEAPON_EMISSION_POWER * HEAT_PER_WEAPON_JOULE);
+        emissionSource.emit(world, rayStart, weaponTarget, configuration.getWeaponEmissionPower());
+        section.accumlateHeat(configuration.getWeaponEmissionPower() *configuration.getWeaponHeatPerJoule());
     }
 
     public boolean canTarget(final Vector2 targetWorldCoordinate) {
@@ -124,13 +119,15 @@ public class WeaponComponent extends AbstractComponent {
         Transform transform = PhysicsUtil.getWorldFixturePositionTransform(getMountedFixture());
         Vector2 currentWorldPos = transform.getPosition().cpy();
         float dst2 = currentWorldPos.dst2(targetWorldCoordinate);
-        if (dst2 > weaponRadius2) {
+        if (dst2 > Math.pow(configuration.getWeaponRange(), 2)) {
             return false;
         }
 
         Vector2 relativeVector = targetWorldCoordinate.cpy().sub(currentWorldPos);
         float angleRad = BASE_ANGLE.angleRad(relativeVector);
-        return CommonUtils.doesRadianRangeContain(weaponStartAngle + transform.getRotation(), weaponArcAngle, angleRad);
+		return CommonUtils.doesRadianRangeContain(weaponStartAngleRad
+				+ transform.getRotation(), configuration.getWeaponArcRad(),
+				angleRad);
     }
 
     public void aimWeapon(final Vector2 worldCoordinate) {
@@ -151,10 +148,10 @@ public class WeaponComponent extends AbstractComponent {
         renderer.setColor(ColorPalate.WEAPON_RANGE);
         Transform transform = PhysicsUtil.getWorldFixturePositionTransform(getMountedFixture());
         Vector2 sensorBase = transform.getPosition().cpy();
-        float startArcRad = transform.getRotation() + weaponStartAngle;
+        float startArcRad = transform.getRotation() + weaponStartAngleRad;
         float startArcDeg = startArcRad * MathUtils.radiansToDegrees;
-        float scannerArcDeg = weaponArcAngle * MathUtils.radiansToDegrees;
-        renderer.arc(sensorBase.x, sensorBase.y, weaponRadius, startArcDeg, scannerArcDeg);
+        float scannerArcDeg = configuration.getWeaponArcRad() * MathUtils.radiansToDegrees;
+        renderer.arc(sensorBase.x, sensorBase.y, configuration.getWeaponRange(), startArcDeg, scannerArcDeg);
 
         if (weaponTarget != null) {
             renderer.setColor(ColorPalate.WEAPON_AIMER);

@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
+import com.beanfarmergames.seethedark.components.configuration.EngineConfiguration;
 import com.beanfarmergames.seethedark.game.EmissionSource;
 import com.beanfarmergames.seethedark.game.EmissionSource.EmissionPowerDropoff;
 import com.beanfarmergames.seethedark.game.RenderLayer;
@@ -20,11 +21,13 @@ public class EngineComponent extends AbstractComponent {
 
     private boolean engineEnabled = false;
     private EngineContribution contirbution = null;
-    private static final float HEAT_PER_FUEL_JOULE = 0.0000075f;
+    private final EngineConfiguration configuration;
+    //TODO: Emission distance should be computed from detection limit
     private static final float ENGINE_EMISSION_DIST = 1000.0f;
 
-    public EngineComponent(float torqueJoule, float thrustJoule) {
-        this.contirbution = new EngineContribution(torqueJoule, thrustJoule);
+    public EngineComponent(EngineConfiguration configuration) {
+    	this.configuration = configuration;
+        this.contirbution = new EngineContribution(configuration.getTorqueJoule(), configuration.getThrustJoule());
     }
 
     private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.EXPONENTIAL);
@@ -71,7 +74,7 @@ public class EngineComponent extends AbstractComponent {
 
     public void fireEngineFor(float torqueJoules, float thrustJoules) {
         ShipSection section = getMountedSection();
-        float energy = (Math.abs(torqueJoules) + Math.abs(thrustJoules)) * HEAT_PER_FUEL_JOULE;
+	        float energy = (Math.abs(torqueJoules) + Math.abs(thrustJoules)) * configuration.getHeatPerUnitFuelJoule();
         if (energy <= 0) {
             return;
         }

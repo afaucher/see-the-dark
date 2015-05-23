@@ -25,6 +25,7 @@ import com.beanfarmergames.seethedark.components.FuelComponent;
 import com.beanfarmergames.seethedark.components.FuelControlComponent;
 import com.beanfarmergames.seethedark.components.SensorComponent;
 import com.beanfarmergames.seethedark.components.WeaponComponent;
+import com.beanfarmergames.seethedark.components.configuration.PartList;
 import com.beanfarmergames.seethedark.entities.Beacon;
 import com.beanfarmergames.seethedark.game.Emission;
 import com.beanfarmergames.seethedark.game.Player;
@@ -56,23 +57,13 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
     private CompoundShip ship = null;
     private final Field field;
 
-    private static final float SCAN_RADIUS = 300.0f;
-    private static final float GLOBAL_SCAN_RADIUS = SCAN_RADIUS / 2;
-    private static final float SCAN_HALF_ARC_RAD = 1.0f;
-    private static final float SCAN_ARC_RAD = SCAN_HALF_ARC_RAD * 2.0f;
-    private static final int SCAN_SLICES = 20;
-    private static final float FUEL = 1000000000;
-
+    //DRAWING SENSOR
     private static final float ACTIVE_SENSOR_HIT_RADIUS = 5.0f;
     private static final float PASSIVE_SENSOR_MAXIUM_POWER = 100.0f;
     private static final float PASSIVE_SENSOR_MIN_RADIUS = 3.0f;
 
-    private static final float TORQUE_JOULE = 2000000.0f;
-    private static final float THRUST_JOULE = 5000000.0f;
-
-    private static final float WEAPON_TARGET_RANGE = 250.0f;
-    private static final float WEAPON_TARGET_START_ARC = MathUtils.PI / 6;
-    private static final float WEAPON_TARGET_ARC = MathUtils.PI / 3;
+    
+    private static final float WEAPON_TARGET_MID_ARC_RAD = MathUtils.PI / 3;
 
     // This is used to sort sensor hits to show freshest on top
     private static AgedElementComparator<SensorHit> sensorComparator = new AgedElementComparator<SensorHit>();
@@ -105,15 +96,13 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
 
         ShipSection firstSection = sections.get(0);
         ShipSection secondSection = sections.get(1);
-
-        SensorComponent frontSensor = new SensorComponent(SCAN_RADIUS, -SCAN_HALF_ARC_RAD, SCAN_ARC_RAD / SCAN_SLICES,
-                SCAN_SLICES);
+        
+        SensorComponent frontSensor = new SensorComponent(PartList.SENSOR_DS_M2, 0);
         frontSensor.mountToSection(this, firstSection);
-
         components.add(frontSensor);
 
-        SensorComponent rearSensor = new SensorComponent(GLOBAL_SCAN_RADIUS, SCAN_HALF_ARC_RAD,
-                (MathUtils.PI2 - SCAN_ARC_RAD) / SCAN_SLICES, SCAN_SLICES);
+        
+        SensorComponent rearSensor = new SensorComponent(PartList.SENSOR_CA_MI, MathUtils.PI);
         rearSensor.mountToSection(this, secondSection);
 
         components.add(rearSensor);
@@ -123,12 +112,12 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
 
         components.add(fuelControl);
 
-        FuelComponent fuel = new FuelComponent(FUEL, FUEL);
+        FuelComponent fuel = new FuelComponent(PartList.FULE_MED, PartList.FULE_MED.getFuelCapacity() / 2.0f);
         fuel.mountToSection(this, secondSection);
 
         components.add(fuel);
 
-        EngineComponent engine = new EngineComponent(TORQUE_JOULE, THRUST_JOULE);
+        EngineComponent engine = new EngineComponent(PartList.ENGINE_MD_MII);
         engine.mountToSection(this, secondSection);
 
         components.add(engine);
@@ -138,13 +127,12 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
 
         components.add(engineControl);
 
-        WeaponComponent weaponOne = new WeaponComponent(WEAPON_TARGET_RANGE, WEAPON_TARGET_START_ARC, WEAPON_TARGET_ARC);
+        WeaponComponent weaponOne = new WeaponComponent(PartList.WEAPON_PD_MII, WEAPON_TARGET_MID_ARC_RAD);
         weaponOne.mountToSection(this, firstSection);
 
         components.add(weaponOne);
 
-        WeaponComponent weaponTwo = new WeaponComponent(WEAPON_TARGET_RANGE, MathUtils.PI2 - WEAPON_TARGET_START_ARC
-                - WEAPON_TARGET_ARC, WEAPON_TARGET_ARC);
+        WeaponComponent weaponTwo = new WeaponComponent(PartList.WEAPON_PD_MII, -WEAPON_TARGET_MID_ARC_RAD);
         weaponTwo.mountToSection(this, firstSection);
 
         components.add(weaponTwo);

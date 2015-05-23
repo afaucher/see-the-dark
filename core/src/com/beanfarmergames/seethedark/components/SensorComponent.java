@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
+import com.beanfarmergames.seethedark.components.configuration.SensorConfiguration;
 import com.beanfarmergames.seethedark.game.EmissionSource;
 import com.beanfarmergames.seethedark.game.EmissionSource.EmissionPowerDropoff;
 import com.beanfarmergames.seethedark.game.RenderLayer;
@@ -20,20 +21,16 @@ import com.beanfarmergames.seethedark.util.PhysicsUtil;
 public class SensorComponent extends AbstractComponent {
 
     private boolean sensorEnabled = true;
-    private float sensorRadius;
     private float sensorStartAngle;
     private float sensorStepAngle;
-    private int sensorSteps;
-
-    private static final float SENSOR_EMISSION_POWER = 100.0f;
+    private final SensorConfiguration configuration;
 
     private EmissionSource emissionSource = new EmissionSource(EmissionPowerDropoff.LINEAR);
 
-    public SensorComponent(float sensorRadius, float sensorStartAngle, float sensorStepAngle, int sensorSteps) {
-        this.sensorRadius = sensorRadius;
-        this.sensorStartAngle = sensorStartAngle;
-        this.sensorStepAngle = sensorStepAngle;
-        this.sensorSteps = sensorSteps;
+    public SensorComponent(SensorConfiguration configuration, float sensorMidAngleRad) {
+    	this.configuration = configuration;
+        this.sensorStartAngle = sensorMidAngleRad - configuration.getSensorSweepAngleRad() / 2.0f;
+        this.sensorStepAngle = configuration.getSensorSweepAngleRad() / configuration.getSensorSteps();
     }
 
     @Override
@@ -74,6 +71,8 @@ public class SensorComponent extends AbstractComponent {
     }
 
     private Vector2[] getScanRayEnds(Vector2 rayStart, float angle) {
+    	int sensorSteps = configuration.getSensorSteps();
+    	float sensorRadius = configuration.getSensorRadius();
         Vector2[] result = new Vector2[sensorSteps];
 
         // Main Scanner
@@ -99,8 +98,8 @@ public class SensorComponent extends AbstractComponent {
         Vector2 sensorBase = transform.getPosition();
         float startArcRad = transform.getRotation() + sensorStartAngle;
         float startArcDeg = startArcRad * MathUtils.radiansToDegrees;
-        float scannerArcDeg = sensorStepAngle * sensorSteps * MathUtils.radiansToDegrees;
-        renderer.arc(sensorBase.x, sensorBase.y, sensorRadius, startArcDeg, scannerArcDeg);
+        float scannerArcDeg = sensorStepAngle * configuration.getSensorSteps() * MathUtils.radiansToDegrees;
+        renderer.arc(sensorBase.x, sensorBase.y, configuration.getSensorRadius(), startArcDeg, scannerArcDeg);
         renderer.end();
 
     }
@@ -129,7 +128,7 @@ public class SensorComponent extends AbstractComponent {
             // Sensors emissions stop at the detection threshold. At least you
             // can both see eachother.
             // TODO: This is doing 2x ray casts, once to detect, once to emit
-            emissionSource.emit(world, rayStart, rayEnd, SENSOR_EMISSION_POWER);
+            emissionSource.emit(world, rayStart, rayEnd, configuration.getSensorEmissionMaxPower());
             // TODO: Generate heat
         }
     }

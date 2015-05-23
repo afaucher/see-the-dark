@@ -2,16 +2,17 @@ package com.beanfarmergames.seethedark.components;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.beanfarmergames.seethedark.components.configuration.FuelConfiguration;
 import com.beanfarmergames.seethedark.game.RenderLayer;
 
 public class FuelComponent extends AbstractComponent implements FuelControl {
 
     private float fuel = 0;
-    private float fuelCapacity = 0;
+    private FuelConfiguration configuration;
 
-    public FuelComponent(float fuel, float fuelCapacity) {
+    public FuelComponent(FuelConfiguration configuration, float fuel) {
+    	this.configuration = configuration; 
         this.fuel = fuel;
-        this.fuelCapacity = fuelCapacity;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class FuelComponent extends AbstractComponent implements FuelControl {
 
     @Override
     public float getFuelCapacity() {
-        return fuelCapacity;
+        return configuration.getFuelCapacity();
     }
 
 }
