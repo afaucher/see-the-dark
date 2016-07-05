@@ -75,6 +75,18 @@ public class StaticShipFactory implements ShipFactory {
             disapateHeat(HEAT_DISAPATED_PER_SECOND * seconds);
         }
 
+		@Override
+		public float getRadius() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public Vector2 getRelativePosition() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
     }
 
     @Override

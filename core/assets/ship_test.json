@@ -1,0 +1,40 @@
+{
+  "ModelRootPart": {
+    "PartRadius": 10,
+    "PartParentAngle": 0,
+    "PartComponents": [
+      {
+        "ComponentName": "FULE_MED"
+      },
+      {
+        "ComponentName": "WEAPON_PD_MII",
+        "ComponentMountingAngle": 4.71
+      },
+      {
+        "ComponentName": "WEAPON_PD_MII",
+        "ComponentMountingAngle": 1.57
+      },
+      {
+        "ComponentName": "SENSOR_CA_MI",
+        "ComponentMountingAngle": 3.14
+      }
+    ],
+    "PartChildren": [
+      {
+        "PartRadius": 10,
+        "PartParentAngle": 0,
+        "PartComponents": [
+          {
+            "ComponentName": "SENSOR_DS_M2"
+          },
+          {
+            "ComponentName": "ENGINE_MD_MII"
+          }
+        ]
+      }
+    ]
+  },
+  "ModelProperties": {
+    "ModelName": "Teapot MI"
+  }
+}

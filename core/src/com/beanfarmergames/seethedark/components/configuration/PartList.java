@@ -22,10 +22,28 @@ public class PartList {
     //WEAPON
 
     private static final float WEAPON_EMISSION_POWER = 100000.0f;
-    // private static final float WEAPON_RADIUS = 1000.0f;
     private static final float HEAT_PER_WEAPON_JOULE = 0.1f;
     private static final float WEAPON_TARGET_RANGE = 250.0f;
     private static final float WEAPON_TARGET_ARC = MathUtils.PI / 3;
+    
+    public enum RegisteredComponent {
+    	SENSOR_DS_M2(PartList.SENSOR_DS_M2),
+    	SENSOR_CA_MI(PartList.SENSOR_CA_MI),
+    	ENGINE_MD_MII(PartList.ENGINE_MD_MII),
+    	FULE_MED(PartList.FULE_MED),
+    	WEAPON_PD_MII(PartList.WEAPON_PD_MII);
+    	
+    	private final ComponentConfiguration config;
+    	RegisteredComponent(ComponentConfiguration config) {
+			this.config = config;
+		}
+		public ComponentConfiguration getConfig() {
+			return config;
+		}
+		public String getName() {
+			return this.name();
+		}
+    }
 
 	public static final SensorConfiguration SENSOR_DS_M2 = new SensorConfiguration();
 	static {

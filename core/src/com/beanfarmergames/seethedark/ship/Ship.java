@@ -36,6 +36,7 @@ import com.beanfarmergames.seethedark.game.field.FieldUpdateCallback;
 import com.beanfarmergames.seethedark.game.field.RenderCallback;
 import com.beanfarmergames.seethedark.sensors.SensorAccumlator;
 import com.beanfarmergames.seethedark.sensors.SensorHit;
+import com.beanfarmergames.seethedark.ship.DynamicShipFactory.ShipModel;
 import com.beanfarmergames.seethedark.style.ColorPalate;
 import com.beanfarmergames.seethedark.style.FontPalate;
 import com.beanfarmergames.seethedark.util.AgedElement;
@@ -43,13 +44,10 @@ import com.beanfarmergames.seethedark.util.AgedElementComparator;
 
 public class Ship implements FieldUpdateCallback, RenderCallback {
 
-    private Body body;
-
+    private ShipModel shipModel;
+    
     private TwoAxisControl controls = null;
     private SensorAccumlator sensorAccumulator = new SensorAccumlator();
-
-    private List<Component> components = new ArrayList<Component>();
-    private List<Component> immutableComponents = Collections.unmodifiableList(components);
 
     private FuelControlComponent fuelControl = null;
     private EngineControlComponent engineControl = null;
@@ -68,74 +66,40 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
     // This is used to sort sensor hits to show freshest on top
     private static AgedElementComparator<SensorHit> sensorComparator = new AgedElementComparator<SensorHit>();
 
-    private static final ShipFactory factory = new StaticShipFactory();
+    private static final DynamicShipFactory factory = new DynamicShipFactory();
     // TODO: Will leak when destroyed
     SpriteBatch spriteBatch = new SpriteBatch();
 
     // Only for the AI impl
     public Body getBody() {
-        return body;
+        return shipModel.body;
     }
 
-    public Ship(Field field, TwoAxisControl controls, Vector2 spwan) {
+    public Ship(Field field, TwoAxisControl controls, Vector2 spawn) {
         this.controls = controls;
         this.field = field;
 
-        World world = field.getWorld();
-
-        BodyDef bd = new BodyDef();
-        bd.allowSleep = true;
-        bd.position.set(spwan.x, spwan.y);
-        body = world.createBody(bd);
-        body.setBullet(true);
-        body.setAngularDamping(0.2f);
-        body.setLinearDamping(0.1f);
-        List<ShipSection> sections = factory.buildShip(body);
+        
+        shipModel = factory.buildModelForShip(this);
+        List<ShipSection> sections = shipModel.sections;
         ship = new CompoundShip(sections);
-        body.setType(BodyDef.BodyType.DynamicBody);
+        
+        shipModel.body.setTransform(spawn.x, spawn.y, 0);
 
         ShipSection firstSection = sections.get(0);
-        ShipSection secondSection = sections.get(1);
-        
-        SensorComponent frontSensor = new SensorComponent(PartList.SENSOR_DS_M2, 0);
-        frontSensor.mountToSection(this, firstSection);
-        components.add(frontSensor);
 
-        
-        SensorComponent rearSensor = new SensorComponent(PartList.SENSOR_CA_MI, MathUtils.PI);
-        rearSensor.mountToSection(this, secondSection);
-
-        components.add(rearSensor);
+        //Refactor
+        List<Component> components = shipModel.components;
 
         fuelControl = new FuelControlComponent();
         fuelControl.mountToSection(this, null);
 
         components.add(fuelControl);
 
-        FuelComponent fuel = new FuelComponent(PartList.FULE_MED, PartList.FULE_MED.getFuelCapacity() / 2.0f);
-        fuel.mountToSection(this, secondSection);
-
-        components.add(fuel);
-
-        EngineComponent engine = new EngineComponent(PartList.ENGINE_MD_MII);
-        engine.mountToSection(this, secondSection);
-
-        components.add(engine);
-
         engineControl = new EngineControlComponent();
         engineControl.mountToSection(this, null);
 
         components.add(engineControl);
-
-        WeaponComponent weaponOne = new WeaponComponent(PartList.WEAPON_PD_MII, WEAPON_TARGET_MID_ARC_RAD);
-        weaponOne.mountToSection(this, firstSection);
-
-        components.add(weaponOne);
-
-        WeaponComponent weaponTwo = new WeaponComponent(PartList.WEAPON_PD_MII, -WEAPON_TARGET_MID_ARC_RAD);
-        weaponTwo.mountToSection(this, firstSection);
-
-        components.add(weaponTwo);
 
         BeaconComponent beacon = new BeaconComponent(this.sensorAccumulator);
         beacon.mountToSection(this, firstSection);
@@ -151,7 +115,7 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
 
     public void aimWeapons(final Vector2 target) {
 
-        for (Component component : components) {
+        for (Component component : getComponents()) {
             if (!ComponentType.Weapon.equals(component.getComponentType())) {
                 continue;
             }
@@ -162,7 +126,7 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
     }
 
     public void fire() {
-        for (Component component : components) {
+        for (Component component : getComponents()) {
             if (!ComponentType.Weapon.equals(component.getComponentType())) {
                 continue;
             }
@@ -173,7 +137,7 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
     }
 
     public Beacon getBeacon() {
-        for (Component component : components) {
+        for (Component component : getComponents()) {
             if (!ComponentType.Beacon.equals(component.getComponentType())) {
                 continue;
             }
@@ -204,16 +168,16 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
         float vY = (float) Math.sin(angle) * thrustNewtons;
 
         // body.applyAngularImpulse(torque, true);
-        body.applyTorque(torqueNewtons, true);
-        body.applyForceToCenter(vX, vY, true);
+        getBody().applyTorque(torqueNewtons, true);
+        getBody().applyForceToCenter(vX, vY, true);
     }
 
     public float getRotation() {
-        return body.getAngle();
+        return getBody().getAngle();
     }
 
     public Vector2 getPosition() {
-        return body.getPosition();
+        return getBody().getPosition();
     }
 
     @Override
@@ -223,11 +187,11 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
         ship.update(seconds);
 
         // Run logic for all components including sensors, engines, weapons, etc
-        for (Component component : components) {
+        for (Component component : getComponents()) {
             component.update(seconds);
         }
 
-        sensorAccumulator.accumulateEmissions(body);
+        sensorAccumulator.accumulateEmissions(getBody());
         float clockSeconds = field.getGameClockSeconds();
         sensorAccumulator.age(clockSeconds);
 
@@ -240,14 +204,14 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
             return;
         }
 
-        float x = body.getPosition().x;
-        float y = body.getPosition().y;
+        float x = getBody().getPosition().x;
+        float y = getBody().getPosition().y;
         float angle = getRotation();
 
         // Render
 
         // Scanner
-        for (Component component : components) {
+        for (Component component : getComponents()) {
             component.render(renderer, layer);
         }
 
@@ -307,7 +271,7 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
             renderer.translate(x, y, 0);
             renderer.rotate(0, 0, 1, angle * MathUtils.radiansToDegrees);
 
-            for (Fixture fixture : body.getFixtureList()) {
+            for (Fixture fixture : getBody().getFixtureList()) {
                 CircleShape cs = (CircleShape) fixture.getShape();
                 if (cs == null)
                     continue;
@@ -405,7 +369,9 @@ public class Ship implements FieldUpdateCallback, RenderCallback {
     }
 
     public List<Component> getComponents() {
-        return immutableComponents;
+    	//Fixme!
+        //return immutableComponents;
+    	return shipModel.components;
     }
 
     public Field getField() {

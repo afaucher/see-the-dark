@@ -1,5 +1,6 @@
 package com.beanfarmergames.seethedark.ship;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.beanfarmergames.seethedark.game.BodyData;
 
@@ -16,4 +17,8 @@ public interface ShipSection extends BodyData {
     public float getHeatLimit();
 
     public void update(float seconds);
+    
+    public float getRadius();
+    
+    public Vector2 getRelativePosition();
 }

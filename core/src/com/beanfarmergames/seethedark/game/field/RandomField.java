@@ -61,7 +61,7 @@ public class RandomField implements FieldLayout {
         Star star = new Star(this, world);
         field.registerUpdateCallback(star);
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             float x = RAND.nextFloat() * 1000;
             float y = RAND.nextFloat() * 1000;
             NavPoint p = new NavPoint(new Vector2(x, y), 100, "Nav " + (i + 1));
